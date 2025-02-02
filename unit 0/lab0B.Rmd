@@ -2,7 +2,7 @@
 title: 'Lab 0.2: dplyr'
 subtitle: "Introduction to Statistical Computing"
 author: Elena Conderana & Sergio Cuenca
-date: 20/01/2025
+date: 02/02/2025
 output:
   pdf_document: 
     toc: true
@@ -45,7 +45,6 @@ install.packages("repurrrsive")
 
 Now we'll load the packages we need. Note: the code chunk below will cause errors if you try to knit this file without installing the packages first.
 
-
 ```{r, warning = FALSE}
 library(purrr)
 library(dplyr)
@@ -67,7 +66,7 @@ letters %>%
 ```
 
 ```{r q1a}
-# YOUR CODE GOES HERE
+paste(toupper(letters), collapse="+")
 ```
 
 **1b.** 
@@ -79,7 +78,7 @@ letters %>%
 ```
 
 ```{r q1b}
-# YOUR CODE GOES HERE
+trimws(gsub("une", "un", "     Ceci n'est pas une pipe     "))
 ```
 
 **1c.**
@@ -90,7 +89,7 @@ rnorm(1000) %>%
 ```
 
 ```{r q1c}
-# YOUR CODE GOES HERE
+hist(rnorm(1000), breaks=30, main="N(0,1) draws", col="pink", prob=TRUE)
 ```
 
 **1d.** 
@@ -103,7 +102,8 @@ rnorm(1000) %>%
 ```
 
 ```{r q1d}
-# YOUR CODE GOES HERE
+h <- hist(rnorm(1000), breaks=30, plot=FALSE)
+max(h$density)
 ```
 
 Q2. Base R to pipes
@@ -118,7 +118,8 @@ paste("Your grade is", sample(c("A","B","C","D","R"), size=1))
 ```
 
 ```{r q2a}
-# YOUR CODE GOES HERE
+sample(c("A", "B", "C", "D", "R"), size=1) %>% 
+  paste("Your grade is", .)
 ```
 
 **2b.** Hint: you can use the dot `.` again, in order to index `state.name` directly in the last pipe command.
@@ -128,10 +129,12 @@ state.name[which.max(state.x77[,"Illiteracy"])]
 ```
 
 ```{r 2qb}
-# YOUR CODE GOES HERE
+state.x77[,"Illiteracy"] %>% 
+  which.max() %>% state.name[.]
 ```
 
 **2c.** Note: `str.url` is defined for use in this and the next question; you can simply refer to it in your solution code (it is not part of the code you have to convert to pipes).
+
 ```{r}
 str.url = "http://www.stat.cmu.edu/~ryantibs/statcomp/data/king.txt"
 
@@ -144,7 +147,13 @@ head(wordtab, 10)
 ```
 
 ```{r q2c}
-# YOUR CODE GOES HERE
+readLines(str.url)%>% 
+  paste(collapse=" ") %>% 
+  strsplit(split="[[:space:]]|[[:punct:]]") %>% 
+  unlist() %>% 
+  table() %>% 
+  sort(decreasing=TRUE) %>% 
+  head(10)
 ```
 
 **2d.** Hint: the only difference between this and the last part is the line `words = words[words != ""]`. This is a bit tricky line to do with pipes: use the dot `.`, once more, and manipulate it as if were a variable name.
@@ -160,7 +169,14 @@ head(wordtab, 10)
 ```
 
 ```{r q2d}
-# YOUR CODE GOES HERE
+readLines(str.url) %>% 
+  paste(collapse=" ") %>% 
+  strsplit(split="[[:space:]]|[[:punct:]]") %>% 
+  unlist() %>% 
+  .[. != ""] %>% 
+  table() %>% 
+  sort(decreasing=TRUE) %>% 
+  head(10)
 ```
 
 Q3. Warming up with map 
@@ -175,40 +191,78 @@ Q3. Warming up with map
    Store each of the results in a different vector and check that they are all identical.
       
 ```{r q3a}
-# YOUR CODE GOES HERE
+name_vector1 <- map(got_chars, function(x) x$name) %>% unlist()
+name_vector2 <- map_chr(got_chars, function(x) x$name)
+name_vector3 <- map_chr(got_chars, `[[`, "name")
+name_vector4 <- map_chr(got_chars, "name")
+
+identical(name_vector1, name_vector2) &&
+identical(name_vector2, name_vector3) &&
+identical(name_vector3, name_vector4)
 ```
 
 **3b.** Produce an integer vector that represents how many allegiances each character holds. Do this with whichever map function you'd like, and print the result to the console. Then use this (and your a saved object from the last question) to answer: which character holds the most allegiances? The least?
 
 ```{r q3b}
-# YOUR CODE GOES HERE
+allegiances_count <- map_int(got_chars, ~length(.x$allegiances))
+allegiances_count
+max_allegiance_char <- got_chars[[which.max(allegiances_count)]]$name
+print(paste("The character that holds the most allegiances is", max_allegiance_char))
+min_allegiance_char <- got_chars[[which.min(allegiances_count)]]$name
+print(paste("The character that holds the least allegiances is", min_allegiance_char))
 ```
 
 **3c.** Run the code below in your console. What does it do?
+
 ```{r, eval=FALSE}
 1:5 %in% 3:6
 ```
+
+It checks if each element of the vector `1:5` (`c(1, 2, 3, 4, 5)`) is present in the vector `3:6` (`c(3, 4, 5, 6)`). The `%in%` operator returns a logical vector indicating whether each element of the left-hand side vector is found in the right-hand side one.
+
 Using the logic you can infer about the `%in%` operator (you can also read its help file), craft a single line of code to compute a Boolean vector of length 6 that checks whether the first Game of Thrones character, stored in `got_chars[[1]]`, has appeared in each of the 6 TV seasons. Print the result to the console.
     
 ```{r q3c}
-# YOUR CODE GOES HERE
+1:6 %in% as.numeric(gsub("Season ", "", got_chars[[1]]$tvSeries))
 ```
     
 **3d.** Run the two lines of code below in their console. What do they do?
+
 ```{r, eval=FALSE}
 rbind(1:5, 6:10, 11:15)
 do.call(rbind, list(1:5, 6:10, 11:15))
 ```
+Both lines produce the same result: a 3-row matrix, where each row is one of the numeric sequences provided (`1:5`, `6:10`, `11:15`).
+
+In the first line, `rbind()` stacks the given vectors row-wise. It takes the three vectors and arranges them into a 3-row, 5-column matrix.
+In the second, `do.call()` dynamically calls the function (`rbind`) on a list of elements. The list (`list(1:5, 6:10, 11:15)`) allows `rbind` to be applied iteratively over the list elements.
+This produces the same 3-row, 5-column matrix as the first command.
+
 Using the logic you can infer about the `do.call()` function (you can also read its help file), as well as the logic from the last question, complete the following task. Using `map()`, a custom-defined function, as well as some post-processing of its results, produce a matrix that has dimension 30 x 6, with each column representing a TV season, and each row a character. The matrix should have a value of `TRUE`  in position (i,j) if character i was in season j, and `FALSE` otherwise. Print the first 6 rows of the result to the console.
 
 ```{r q3d}
-# YOUR CODE GOES HERE
-```
+season_matrix <- map(got_chars, ~ (1:6) %in% as.numeric(gsub("Season ", "", .x$tvSeries))) %>% 
+  simplify2array() %>% 
+  t()
+rownames(season_matrix) <- map_chr(got_chars, "name")
+colnames(season_matrix) <- paste0("Season", 1:6)
 
+head(season_matrix)
+```
 **Challenge.** Repeat the same task as in the last question, but using `map_df()` and no post-processing. The result will now be a data frame (not a matrix). Print the first 6 rows of the result to the console. Hint: `map_dfr()` will throw an error if it can't infer column names.
 
 ```{r q3chal}
-# YOUR CODE GOES HERE
+season_df <- map_dfr(got_chars, ~ tibble(
+  Name = .x$name,
+  Season1 = 1 %in% as.numeric(gsub("Season ", "", .x$tvSeries)),
+  Season2 = 2 %in% as.numeric(gsub("Season ", "", .x$tvSeries)),
+  Season3 = 3 %in% as.numeric(gsub("Season ", "", .x$tvSeries)),
+  Season4 = 4 %in% as.numeric(gsub("Season ", "", .x$tvSeries)),
+  Season5 = 5 %in% as.numeric(gsub("Season ", "", .x$tvSeries)),
+  Season6 = 6 %in% as.numeric(gsub("Season ", "", .x$tvSeries))
+))
+
+head(season_df)
 ```
 
 Q4. Cultural studies
@@ -217,31 +271,56 @@ Q4. Cultural studies
 **4a.** Using `map_dfr()`, create a data frame of dimension 30 x 5, whose columns represent, for each Game of Thrones character, their name, birth date, death date, gender, and culture. Store it as `got_df` and print the last 3 rows to the console.
 
 ```{r q4a}
-# YOUR CODE GOES HERE
+got_df <- map_dfr(got_chars, ~ tibble(
+  Name = .x$name,
+  Born = .x$born,
+  Died = .x$died,
+  Gender = .x$gender,
+  Culture = .x$culture
+))
+
+tail(got_df, 3)
 ```
 
 **4b.** Using `got_df`, show that you can compute whether each character is alive or not, and compare this to what is stored in `got_chars`, demonstrating that the two ways of checking whether each character is alive lead to equal results.
 
 ```{r q4b}
-# YOUR CODE GOES HERE
+computed_alive <- got_df$Died == ""
+stored_alive <- map_lgl(got_chars, "alive")
+
+identical(computed_alive, stored_alive)
 ```
 
 **4c.** Using `filter()`, print the subset of the rows of `got_df` that correspond to Ironborn characters. Then print the subset that correspond to female Northmen. 
 
 ```{r q4c}
-# YOUR CODE GOES HERE
+# Ironborn characters
+ironborn_chars <- filter(got_df, Culture == "Ironborn")
+print(ironborn_chars)
+
+# Female Northmen characters
+female_northmen <- filter(got_df, Culture == "Northmen", Gender == "Female")
+print(female_northmen)
 ```
 
 **4d.** Create a matrix of dimension (number of cultures) x 2 that counts how many women and men there are in each culture appearing in `got_df`. Print the results to the console. Hint: what happens if you pass `table()` two arguments?
 
 ```{r q4d}
-# YOUR CODE GOES HERE
+gender_culture_matrix <- table(got_df$Culture, got_df$Gender)
+print(gender_culture_matrix)
 ```
 
 **4e.** Using `group_by()` and `summarize()` on `got_df`, compute how many characters in each culture have died. Which culture---aside from the unknown category represented by ""---has the most deaths?
 
 ```{r q4e}
-# YOUR CODE GOES HERE
+culture_deaths <- got_df %>%
+  mutate(IsDead = Died != "") %>%
+  group_by(Culture) %>%
+  summarize(Deaths = sum(IsDead)) %>%
+  arrange(desc(Deaths))
+
+most_deaths_culture <- culture_deaths %>% filter(Culture != "") %>% slice(1)
+print(most_deaths_culture)
 ```
 
 \newpage
@@ -261,33 +340,69 @@ Q5. Practice with grouping and summarizing
 **5a.** Using `group_by()` and `summarize()`, compute how many athletes competed for each country in the `rio` data frame? Print the results for the first 10 countries to the console. Building off your here answer, use an additional call to `filter()` to compute which country had the most number of athletes and how many that was. Hint: consider using `n()` from the `dplyr` package for the first part here.
 
 ```{r q5a}
-# YOUR CODE GOES HERE
+athlete_counts <- rio %>%
+  group_by(nationality) %>%
+  summarize(Athletes = n()) %>%
+  arrange(desc(Athletes))
+
+print(head(athlete_counts, 10))
+
+most_athletes <- athlete_counts %>%
+  filter(Athletes == max(Athletes))
+
+print(most_athletes)
 ```
 
-**5b.** Using `group_by()`, `summarize()`, and `filter()`, compute which country had the most numnber of total medals and many that was. 
+**5b.** Using `group_by()`, `summarize()`, and `filter()`, compute which country had the most number of total medals and how many that was. 
 
 ```{r q5b}
-# YOUR CODE GOES HERE
+medal_counts <- rio %>%
+  group_by(nationality) %>%
+  summarize(TotalMedals = sum(gold + silver + bronze, na.rm = TRUE)) %>%
+  arrange(desc(TotalMedals))
+
+most_medals <- medal_counts %>%
+  filter(TotalMedals == max(TotalMedals))
+
+print(most_medals)
 ```
 
 **5c.** Using `group_by()`, `summarize()`, and `filter()`, compute which country---among those with zero total medals---had the most number of athletes. Hint: you will need to modify your `summarize()` command to compute the number of athletes; and you might need two calls to `filter()`.
 
 ```{r q5c}
-# YOUR CODE GOES HERE
+zero_medal_countries <- rio %>%
+  group_by(nationality) %>%
+  summarize(Athletes = n(), TotalMedals = sum(gold + silver + bronze, na.rm = TRUE)) %>%
+  filter(TotalMedals == 0) %>%
+  arrange(desc(Athletes))
+
+most_athletes_no_medals <- zero_medal_countries %>%
+  filter(Athletes == max(Athletes))
+
+print(most_athletes_no_medals)
 ```
 
-**5d.** Using---yes, you guessed it---`group_by()`, `summarize()`, and `filter()`, compute the average weight of athletes in each sport, separately for men and women, and report the two sport with the highest average weights (one for each of men and women). Hint: `group_by()` can accept more than one grouping variable. Also, consider using `na.rm=TRUE` as an additional argument to certain arithmetic summary functions so that they will not be thrown off by `NA` or `NaN` values.
+**5d.** Using ---yes, you guessed it--- `group_by()`, `summarize()`, and `filter()`, compute the average weight of athletes in each sport, separately for men and women, and report the two sport with the highest average weights (one for each of men and women). Hint: `group_by()` can accept more than one grouping variable. Also, consider using `na.rm=TRUE` as an additional argument to certain arithmetic summary functions so that they will not be thrown off by `NA` or `NaN` values.
 
 ```{r q5d}
-# YOUR CODE GOES HERE
+average_weights <- rio %>%
+  group_by(sport, sex) %>%
+  summarize(AverageWeight = mean(weight, na.rm = TRUE), .groups = "drop") %>%
+  arrange(desc(AverageWeight))
+
+highest_weight_men <- average_weights %>%
+  filter(sex == "male") %>%
+  slice(1)
+
+highest_weight_women <- average_weights %>%
+  filter(sex == "female") %>%
+  slice(1)
+
+print(highest_weight_men)
+print(highest_weight_women)
 ```
 
 \newpage
-
-Fastest 100m sprint times
-===
-
-Below, we read two data sets of the 1000 fastest times ever recorded for the 100m sprint, in men's and women's track. We scraped this data from http://www.alltime-athletics.com/m_100ok.htm and http://www.alltime-athletics.com/w_100ok.htm, in early September 2021. (Interestingly, the 2nd, 3rd, 4th, 7th, and 8th fastest women's times were all set at the most recent Tokyo Olympics, or after! Meanwhile, the top 10 men's times are all from about a decade ago.)
 
 Prostate cancer data set
 ===
@@ -307,19 +422,26 @@ In the following, use pipes and `dplyr` verbs to answer questions on `pros.df`.
 **6a.** Among the men whose `lcp` value is equal to the minimum value (across the entire data set), report the range (min and max) of `lpsa`. 
 
 ```{r q6a}
-# YOUR CODE GOES HERE
+pros.df %>%
+  filter(lcp == min(lcp, na.rm = TRUE)) %>%
+  summarize(MinLPSA = min(lpsa, na.rm = TRUE), MaxLPSA = max(lpsa, na.rm = TRUE))
 ```
 
 **6b.** Order the rows by decreasing `age`, then display the rows from men who are older than 70 and without SVI. 
 
 ```{r q6b}
-# YOUR CODE GOES HERE
+pros.df %>%
+  arrange(desc(age)) %>%
+  filter(age > 70, svi == 0)
 ```
 
 **6c.** Order the rows by decreasing `age`, then decreasing `lpsa` score, and display the rows from men who are older than 70 and without SVI, but only the `age`, `lpsa`, `lcavol`, and `lweight` columns. Hint: `arrange()` can take two arguments, and the order you pass in them specifies the priority. 
 
 ```{r q6c}
-# YOUR CODE GOES HERE
+pros.df %>%
+  arrange(desc(age), desc(lpsa)) %>%
+  filter(age > 70, svi == 0) %>%
+  select(age, lpsa, lcavol, lweight)
 ```
 
 **6d.** We're going to resolve Q2c from Lab 3 using the tidyverse. Using `purrr` and `dplyr`, perform t-tests for each variable in the data set, between SVI and non-SVI groups. To be precise, you will perform a t-test for each column excluding the SVI variable itself, by running the function `t.test.by.ind()` below (which is just as in Q2c in Lab 3). Print the returned t-test objects out to the console.
@@ -332,14 +454,30 @@ t.test.by.ind = function(x, ind) {
 ```
 
 ```{r q6d}
-# YOUR CODE GOES HERE
+t_test_results <- pros.df %>%
+  select(-svi) %>%
+  map(~ t.test.by.ind(.x, pros.df$svi))
+
+print(t_test_results)
 ```
 
 **6e.** Extend your code from the last part (append just one more line of code, glued together by a pipe) to extract the p-values from each of the returned t-test objects, and print them out to the console.
 
 ```{r q6e}
-# YOUR CODE GOES HERE
+t_test_pvalues <- pros.df %>%
+  select(-svi) %>%
+  map(~ t.test.by.ind(.x, pros.df$svi)) %>%
+  map_dbl(~ .x$p.value)
+
+print(t_test_pvalues)
 ```
+
+\newpage
+
+Fastest 100m sprint times
+===
+
+Below, we read two data sets of the 1000 fastest times ever recorded for the 100m sprint, in men's and women's track. We scraped this data from http://www.alltime-athletics.com/m_100ok.htm and http://www.alltime-athletics.com/w_100ok.htm, in early September 2021. (Interestingly, the 2nd, 3rd, 4th, 7th, and 8th fastest women's times were all set at the most recent Tokyo Olympics, or after! Meanwhile, the top 10 men's times are all from about a decade ago.)
 
 ```{r}
 sprint.m.df = read.table(
@@ -356,31 +494,66 @@ Q7. More practice with data frame computations
 **7a.** Confirm that both `sprint.m.df` and `sprint.w.df` are data frames. Delete the `Rank` column from each data frame, then display the first and last 3 rows of each. 
 
 ```{r q7a}
-# YOUR CODE GOES HERE
+is.data.frame(sprint.m.df)
+is.data.frame(sprint.w.df)
+
+sprint.m.df <- sprint.m.df %>%
+  select(-Rank)
+sprint.w.df <- sprint.w.df %>%
+  select(-Rank)
+
+head(sprint.m.df, 3)
+tail(sprint.m.df, 3)
+head(sprint.w.df, 3)
+tail(sprint.w.df, 3)
 ```
 
 **7b.** Recompute the ranks for the men's data set from the `Time` column and add them back as a `Rank` column to `sprint.m.df`. Do the same for the women's data set. After adding back the rank columns, print out the first 10 rows of each data frame, but only the `Time`, `Name`, `Date`, and `Rank` columns. Hint: consider using `rank()`.
 
 ```{r q7b}
-# YOUR CODE GOES HERE
+sprint.m.df <- sprint.m.df %>%
+  mutate(Rank = rank(Time, ties.method = "min")) 
+
+sprint.w.df <- sprint.w.df %>%
+  mutate(Rank = rank(Time, ties.method = "min")) 
+
+sprint.m.df %>% select(Time, Name, Date, Rank) %>% head(10)
+sprint.w.df %>% select(Time, Name, Date, Rank) %>% head(10)
 ```
 
 **7c.** Using base R functions, compute, for each country, the number of sprint times from this country that appear in the men's data set. Call the result `sprint.m.counts`. Do the same for the women's data set, and call the result `sprint.w.counts`. What are the 5 most represented countries, for the men, and for the women? (Interesting side note: go look up the population of Jamaica, compared to that of the US. Pretty impressive, eh?) 
 
 ```{r q7c}
-# YOUR CODE GOES HERE
+sprint.m.counts <- table(sprint.m.df$Country)
+sprint.w.counts <- table(sprint.w.df$Country)
+
+sort(sprint.m.counts, decreasing = TRUE)[1:5]
+sort(sprint.w.counts, decreasing = TRUE)[1:5]
 ```
 
 **7d.** Repeat the same calculations as in last part but using `dplyr` functions, and print out again the 5 most represented countries for men and women. (No need to save new variables.) Hint: consider using `arrange()` from the `dplyr` library.
 
 ```{r q7d}
-# YOUR CODE GOES HERE
+sprint.m.df %>%
+  count(Country, sort = TRUE) %>%
+  head(5)
+
+sprint.w.df %>%
+  count(Country, sort = TRUE) %>%
+  head(5)
 ```
 
-**7e.** Are there any countries that are represented by women but not by men, and if so, what are they? Vice versa, represented by men and not women? Hint: consider using the `%in%` operator. 
+**7e.** Are there any countries that are represented by women but not by men, and if so, what are they? Viceversa, represented by men and not women? Hint: consider using the `%in%` operator. 
 
 ```{r q7e}
-# YOUR CODE GOES HERE
+men_countries <- unique(sprint.m.df$Country)
+women_countries <- unique(sprint.w.df$Country)
+
+# Countries in women but not men
+setdiff(women_countries, men_countries)
+
+# Countries in men but not women
+setdiff(men_countries, women_countries)
 ```
 
 Q8. More practice with `dplyr` functions
@@ -389,55 +562,115 @@ Q8. More practice with `dplyr` functions
 **8a.** Using `dplyr` functions, compute, for each country, the fastest time among athletes who come from that country. Do this for each of the men's and women's data sets, and display the first 10 rows of the result.
 
 ```{r q8a}
-# YOUR CODE GOES HERE
+sprint.m.df %>%
+  group_by(Country) %>%
+  summarize(FastestTime = min(Time, na.rm = TRUE)) %>%
+  head(10)
+
+sprint.w.df %>%
+  group_by(Country) %>%
+  summarize(FastestTime = min(Time, na.rm = TRUE)) %>%
+  head(10)
 ```
 
 **8b.** With the most minor modification to your code possible, do the same computations as in the last part, but now display the first 10 results ordered by increasing time. Hint: recall `arrange()`.
 
 ```{r q8b}
-# YOUR CODE GOES HERE
+sprint.m.df %>%
+  group_by(Country) %>%
+  summarize(FastestTime = min(Time, na.rm = TRUE)) %>%
+  arrange(FastestTime) %>%
+  head(10)
+
+sprint.w.df %>%
+  group_by(Country) %>%
+  summarize(FastestTime = min(Time, na.rm = TRUE)) %>%
+  arrange(FastestTime) %>%
+  head(10)
 ```
 
 **8c.** Rewrite your solution in the last part using base R. Hint: `tapply()` gives probably the easiest route here. Note: your code here shouldn't be too much more complicated than your code in the last part.
 
 ```{r q8c}
-# YOUR CODE GOES HERE
+fastest_men <- tapply(sprint.m.df$Time, sprint.m.df$Country, min, na.rm = TRUE)
+fastest_women <- tapply(sprint.w.df$Time, sprint.w.df$Country, min, na.rm = TRUE)
+
+head(sort(fastest_men), 10)
+head(sort(fastest_women), 10)
 ```
 
 **8d.** Using `dplyr` functions, compute, for each country, the quadruple: name, city, country, and time, corresponding to the athlete with the fastest time among athletes from that country. Do this for each of the men's and women's data sets, and display the first 10 rows of the result, ordered by increasing time. If there are ties, then show all the results that correspond to the fastest time. Hint: consider using `select()` from the `dplyr` library.
 
 ```{r q8d}
-# YOUR CODE GOES HERE
+sprint.m.df %>%
+  group_by(Country) %>%
+  filter(Time == min(Time, na.rm = TRUE)) %>%
+  select(Name, City, Country, Time) %>%
+  arrange(Time) %>%
+  head(10)
+
+sprint.w.df %>%
+  group_by(Country) %>%
+  filter(Time == min(Time, na.rm = TRUE)) %>%
+  select(Name, City, Country, Time) %>%
+  arrange(Time) %>%
+  head(10)
 ```
 
 **8e.** Rewrite your solution in the last part using base R. Hint: there are various routes to go; one strategy is to use `split()`, followed by `lapply()` with a custom function call, and then `rbind()` to get things in a data frame form. Note: your code here will probably be more complicated, or at least less intuitive, than your code in the last part.
 
 ```{r q8e}
-# YOUR CODE GOES HERE
+fastest_per_country <- function(df) {
+  split_df <- split(df, df$Country)
+  
+  result <- do.call(rbind, lapply(split_df, function(sub_df) {
+    min_time <- min(sub_df$Time, na.rm = TRUE)
+    sub_df[sub_df$Time == min_time, c("Name", "City", "Country", "Time")]
+  }))
+  
+  result[order(result$Time), ]
+}
+
+fastest_men <- fastest_per_country(sprint.m.df)
+fastest_women <- fastest_per_country(sprint.w.df)
+
+head(fastest_men, 10)
+head(fastest_women, 10)
 ```
 
 **8f.** Order the rows by increasing `Wind` value, and then display only the women who ran at most 10.7 seconds. 
 
 ```{r q8f}
-# YOUR CODE GOES HERE
+sprint.w.df %>%
+  arrange(Wind) %>%
+  filter(Time <= 10.7)
 ```
 
 **8g.** Order the rows by terms of increasing `Time`, then increasing `Wind`, and again display only the women who ran at most 10.7 seconds, but only the `Time`, `Wind`, `Name`, and `Date` columns. 
 
 ```{r q8g}
-# YOUR CODE GOES HERE
+sprint.w.df %>%
+  arrange(Time, Wind) %>%
+  filter(Time <= 10.7) %>%
+  select(Time, Wind, Name, Date)
 ```
 
 **8h.** Plot the `Time` versus `Wind` columns, but only using data where `Wind` values that are nonpositive. Hint: note that for a data frame, `df` with columns `colX` and `colY`, you can use `plot(colY ~ colX, data=df)`, to plot `df$colY` (y-axis) versus `df$colX` (x-axis).
 
 ```{r q8h}
-# YOUR CODE GOES HERE
+sprint.w.df %>%
+  filter(Wind <= 0) %>%
+  plot(Time ~ Wind, data = .)
 ```
 
 **8i.** Extend your code from the last part (append just two more lines of code, glued together by a pipe) to plot the single fastest `Time` per `Wind` value. (That is, your plot should be as in the last part, but among points that share the same x value, only the point with the lowest y value should be drawn.)
 
 ```{r q8i}
-# YOUR CODE GOES HERE
+sprint.w.df %>%
+  filter(Wind <= 0) %>%
+  group_by(Wind) %>%
+  summarize(FastestTime = min(Time)) %>%
+  plot(FastestTime ~ Wind, data = .)
 ```
 
 Q9. Practice pivoting wider and longer
@@ -448,35 +681,82 @@ In the following, use pipes and `dplyr` and `tidyr` verbs to answer questions on
 **9a.** Confirm that the `Time` column is stored as character data type. Why do you think this is? Convert the `Time` column to numeric. Hint: after converting to numeric, there will be `NA` values; look at the position of one such `NA` value and revisit the original `Time` column to see why it was stored as character type in the first place.
 
 ```{r q9a}
-# YOUR CODE GOES HERE
+class(sprint.m.df$Time) 
+
+sprint.m.df.new <- sprint.m.df %>%
+  mutate(Time = as.numeric(Time))
+
+class(sprint.m.df.new$Time)
+which(is.na(sprint.m.df.new$Time))
 ```
+The Time column is stored as character because some values contain non-numeric characters, such as:
+
+- "10.54w" (wind-assisted time, "w")
+- "10.67A" (altitude-assisted time, "A")
 
 **9b.** Define a reduced data frame `dat.reduced` as follows. For each athlete, and each city, keep the fastest of all times they recorded in this city. Then drop all rows with an `NA` value in the `Time` column Your new data frame `dat.reduced` should have 600 rows and 3 columns (`Name`, `City`, `Time`). Confirm that it has these dimensions, and display its first 10 rows. Hint: `drop_na()` in the `tidyr` package allows you to drop rows based on `NA` values.
 
 ```{r q9b}
-# YOUR CODE GOES HERE
+dat.reduced <- sprint.m.df.new %>%
+  drop_na(Time) %>%
+  group_by(Name, City) %>%
+  summarize(Time = min(Time, na.rm = TRUE), .groups = "drop") %>%
+  ungroup() %>%
+  select(Name, City, Time)
+
+dim(dat.reduced) # 600 x 3
+head(dat.reduced, 10)
 ```
 
-**9c.** The data frame `dat.reduced` is said to be in "long" format: it has observations on the rows, and variables (`Name`, `City`, `Time`) on the columns. Arrange the rows alphebtically by city; convert this data frame into "wide" format; and then order the rows so that they are alphabetical by sprinter name. Call the result `dat.wide`. To be clear, here the first column should be the athlete names, and the remaining columns should correspond to the cities. Confirm that your data frame has dimension 141 x 152 Do these dimensions make sense to you?
+**9c.** The data frame `dat.reduced` is said to be in "long" format: it has observations on the rows, and variables (`Name`, `City`, `Time`) on the columns. Arrange the rows alphabetically by city; convert this data frame into "wide" format; and then order the rows so that they are alphabetical by sprinter name. Call the result `dat.wide`. To be clear, here the first column should be the athlete names, and the remaining columns should correspond to the cities. Confirm that your data frame has dimension 141 x 152. Do these dimensions make sense to you?
 
 ```{r q9c}
-# YOUR CODE GOES HERE
+dat.wide <- dat.reduced %>%
+  pivot_wider(names_from = City, values_from = Time) %>%
+  arrange(Name)
+
+dim(dat.wide)  # 141 x 152
 ```
+
+The dimensions make sense as each row represents a unique sprinter, the first column is the sprinter's name, and the other 151 columns correspond to different cities where the times were recorded.
 
 **9d.** Not counting the names in the first column, how many non-`NA` values does `dat.wide` have? How could you have guessed this number ahead of time, directly from `dat.reduced` (before any pivoting at all)?
 
 ```{r q9d}
-# YOUR CODE GOES HERE
+non_na_count <- sum(!is.na(dat.wide[,-1]))
+print(non_na_count)
+
+nrow(dat.reduced)
 ```
+
+The number of non-NA values directly could have been predicted directly from `dat.reduced` by simply counting its rows.
+Each row in `dat.reduced` represents a valid (Name, City, Time) combination. Since `dat.wide` is just `dat.reduced` pivoted, the total number of non-NA values remains the same. As a result, the number of non-NA values in `dat.wide` should be equal to the number of rows in `dat.reduced`, which is 600.
 
 **9e.** From `dat.wide`, look at the row for "Usain Bolt", and determine the city names that do not have `NA` values. These should be the cities in which he raced. Determine these cities directly from `dat.reduced`, and confirm that they match.
 
 ```{r q9e}
-# YOUR CODE GOES HERE
+usain_bolt_row <- dat.wide %>%
+  filter(Name == "Usain Bolt")
+
+usain_bolt_cities_wide <- names(usain_bolt_row)[which(!is.na(usain_bolt_row))][-1]
+
+usain_bolt_cities_long <- dat.reduced %>%
+  filter(Name == "Usain Bolt") %>%
+  pull(City)
+
+identical(sort(usain_bolt_cities_wide), sort(usain_bolt_cities_long))
+print(usain_bolt_cities_wide)
 ```
 
 **9f.** Convert `dat.wide` back into "long" format, and call the result `dat.long`. Remove rows that have `NA` values (hint: you can do this by setting `values_drop_na = TRUE` in the call to the pivoting function), and order the rows alphabetically by athlete and city name. Once you've done this, `dat.long` should have matching entries to `dat.reduced`; confirm that this is the case.
 
 ```{r q9f}
-# YOUR CODE GOES HERE
+dat.long <- dat.wide %>%
+  pivot_longer(cols = -Name,
+               names_to = "City", 
+               values_to = "Time",
+               values_drop_na = TRUE) %>%
+  arrange(Name, City)
+
+dim(dat.long)
 ```
