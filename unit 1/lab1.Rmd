@@ -1,7 +1,7 @@
 ---
 title: 'Lab 1: Efficient Programming'
 subtitle: "Introduction to Statistical Computing"
-author: 
+author: Elena Conderana & Sergio Cuenca
 date: 
 output:
   pdf_document: 
@@ -35,16 +35,27 @@ This lab is to be done outside of class time. You may collaborate with one class
 Installing and loading packages 
 ===
 
-In order to perform the exercise in this practice you should install and load the `microbenchmark` and `profvis` packages. Also install `devtools` and the `proftools` package from CRAN.
+In order to perform the exercise in this practice you should install the `microbenchmark` and `profvis` packages. Also install `devtools` and the `proftools` package from CRAN.
 
-```{r}
-# YOUR CODE GOES HERE
+```{r, eval=FALSE}
+install.packages("microbenchmark")
+install.packages("profvis")
+install.packages("devtools")
+install.packages("proftools")
 ```
 
+Load the installed packages.
+
+```{r, warning = FALSE}
+library(microbenchmark)
+library(profvis)
+library(devtools)
+library(proftools)
+```
 From the `Bioconductor` repository you must also install the `graph` and `Rgraphviz` packages. To install packages from this repository, you must install `BiocManager` package first and then use the `BiocManager::install()` function to install the packages.
 ```{r, eval = FALSE}
 install.packages("BiocManager", dep = TRUE)
-BiocManager::install(c("Rgraphviz","graph"))
+BiocManager::install(c("Rgraphviz","graph"))saa
 ```
 
 Q1. Microbenchmarking
@@ -55,7 +66,7 @@ Q1. Microbenchmarking
 ```{r q1a, eval=FALSE}
 x <- 1:100 # initiate vector to cumulatively sum
 
-# Method 1: with a for loop (10 lines)
+# Method 1: with a for loop
 cs_for <- function(x) {
   for (i in x) {
     if (i == 1) {
@@ -67,28 +78,114 @@ cs_for <- function(x) {
   xc
 }
 
-# Method 2: with apply (3 lines)
+# Method 2: with apply
 cs_apply <- function(x) {
   sapply(x, function(x) sum(1:x))
 }
 
-# Method 3: cumsum (1 line)
-cumsum(x)
+# Method 3: cumsum
+cs_cumsum <- function(x) {
+  cumsum(x)
+}
 
-# YOUR CODE GOES HERE
+# Benchmark the three methods
+benchmark_results <- microbenchmark(
+  cs_for(x),
+  cs_apply(x),
+  cs_cumsum(x),
+  times = 1000
+)
+
+print(benchmark_results)
+
+median_times <- aggregate(benchmark_results$time, by = list(benchmark_results$expr), FUN = median)
+colnames(median_times) <- c("Method", "Median_Time")
+median_times <- median_times[order(median_times$Median_Time), ]
+
+fastest_method <- median_times$Method[1]
+fastest_time <- median_times$Median_Time[1]
+
+second_fastest_method <- median_times$Method[2]
+second_fastest_time <- median_times$Median_Time[2]
+
+speedup_factor <- second_fastest_time / fastest_time
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            fastest_method, speedup_factor, second_fastest_method))
+
 ```
 
 **1b.** Run the same benchmark but now `x` is `1:50000`. As the benchmark could take too long, set the argument `time = 1` in the `microbenchmark` function. Does the relative difference between the fastest and the second fastest increase or decrease? By how much?
 
 ```{r q1b}
-# YOUR CODE GOES HERE
+x <- 1:50000
+
+benchmark_results_long <- microbenchmark(
+  cs_for = cs_for(x),
+  cs_apply = cs_apply(x),
+  cs_cumsum = cs_cumsum(x),
+  times = 1
+)
+
+print(benchmark_results_long)
+
+median_times_large <- aggregate(benchmark_results_long$time, by = list(benchmark_results_long$expr), FUN = median)
+colnames(median_times_large) <- c("Method", "Median_Time")
+median_times_large <- median_times_large[order(median_times_large$Median_Time), ]
+
+fastest_method_large <- median_times_large$Method[1]
+fastest_time_large <- median_times_large$Median_Time[1]
+
+second_fastest_method_large <- median_times_large$Method[2]
+second_fastest_time_large <- median_times_large$Median_Time[2]
+
+speedup_factor_large <- second_fastest_time_large / fastest_time_large
+
+cat(sprintf("For x = 1:50000, the fastest method is %s and it is %.2f times faster than %s.\n", 
+            fastest_method_large, speedup_factor_large, second_fastest_method_large))
+
+speedup_change <- speedup_factor_large / speedup_factor
+
+cat(sprintf("The relative speedup factor has %s by %.2f times compared to x = 1:100.\n",
+            ifelse(speedup_change > 1, "increased", "decreased"), speedup_change))
 ```
 
 **1c.** Try profiling a section of code you have written using the `profvis::profvis()` function. Where are the bottlenecks? Were they where you expected?
 
 ```{r q1c}
-# YOUR CODE GOES HERE
+profvis({
+  
+  x <- 1:50000
+
+  # Method 1: with a for loop
+  cs_for <- function(x) {
+    for (i in x) {
+      if (i == 1) {
+        xc = x[i]
+      } else {
+        xc = c(xc, sum(x[1:i]))
+      }
+    }
+    xc
+  }
+
+  # Method 2: with apply
+  cs_apply <- function(x) {
+    sapply(x, function(x) sum(1:x))
+  }
+  
+  # Method 3: cumsum
+  cs_cumsum <- function(x) {
+    cumsum(x)
+  }
+  
+  cs_for(x)
+  cs_apply(x)
+  cs_cumsum(x)
+})
 ```
+
+The profiling results from the data table and flame graph show that the main bottleneck is located in the `cs_for` function, which computes the cumulative sum using a for loop. 
+These results were expected as this method was the slowest, and it can be confirmed with the profiling, taking 6870 ms and consuming 7497.5 MB of memory. The major problem is that `c(xc, sum(x[1:i]))` continuously appends to` xc`, causing memory reallocation at each iteration, which is very inefficient. `cs_apply` performs much better, taking only 20 ms and almost no memory overhead. Finally, `cumsum` is the fastest, practically taking no time, as it is a function highly optimized at the C level.
 
 **1d.** Let's profile a section of code with the `Rprof()` function. The code section is a function to compute sample variance of a numeric vector:
 ```{r}
@@ -131,8 +228,10 @@ Rprof(NULL)
 Use the `summaryRprof()` function to print a summary of the code profiling. Which part of the function takes more time to execute? Which part of the function requires more memory?
 
 ```{r q1d}
-# YOUR CODE GOES HERE
+summaryRprof("Rprof.out", memory = "both")
 ```
+
+The part of the function that takes more time is `sq.var()`, which takes 65% of the total execution time (2.08 out of 3.20 seconds), indicating that computing the sum of squared variances is the bottleneck. Both functions display 0 in the `mem.total` column, indicating that no appreciable variations in memory usage were noted. This is probably because, instead of allocating big objects, both functions work with numeric scalars.
 
 **1e.** `summaryRprof()` function prints a summary of the code profiling, but it is not user-friendly to read. Using the `proftool` packages, let's see the results from the `Rprof.out` file. See the help (`?`) for the functions `readProfiledata` and `plotProfileCallGraph` and plot the results of the code profiling from **1d**.
 ```{r q1e}
