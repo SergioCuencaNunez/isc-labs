@@ -8,6 +8,7 @@ output:
     toc: true
     number_sections: false
     latex_engine: pdflatex
+always_allow_html: true
 ---
 
 ```{r, include=FALSE}
@@ -64,7 +65,7 @@ Q1. Microbenchmarking
 
 **1a.** Use the `microbenchmark::microbenchmark()` function to know which of the following three functions is the fastest to perform the cumulative sum of a 100-element vector. By how much is the fastest with respect to the second one?
 
-```{r q1a, eval=FALSE}
+```{r q1a}
 x <- 1:100 # initiate vector to cumulatively sum
 
 # Method 1: with a for loop
@@ -99,7 +100,9 @@ benchmark_results <- microbenchmark(
 
 print(benchmark_results)
 
-median_times <- aggregate(benchmark_results$time, by = list(benchmark_results$expr), FUN = median)
+median_times <- aggregate(benchmark_results$time, 
+                          by = list(benchmark_results$expr), 
+                          FUN = median)
 colnames(median_times) <- c("Method", "Median_Time")
 median_times <- median_times[order(median_times$Median_Time), ]
 
@@ -129,7 +132,9 @@ benchmark_results_long <- microbenchmark(
 
 print(benchmark_results_long)
 
-median_times_large <- aggregate(benchmark_results_long$time, by = list(benchmark_results_long$expr), FUN = median)
+median_times_large <- aggregate(benchmark_results_long$time, 
+                                by = list(benchmark_results_long$expr), 
+                                FUN = median)
 colnames(median_times_large) <- c("Method", "Median_Time")
 median_times_large <- median_times_large[order(median_times_large$Median_Time), ]
 
@@ -280,10 +285,6 @@ Some setting that affect R performance in RStudio may be:
 
 **2d.** Try some of the shortcuts integrated in RStudio. What shortcuts do you think can save you development time? (Note only some of them, not ALL of them)
 
-```{r q2d}
-# YOUR CODE GOES HERE
-```
-
 Some RStudio shortcuts that can save development time:
 
  * Run Current Line/Selection: `Cmd + Enter` (Mac) / `Ctrl + Enter` (Windows/Linux)
@@ -345,7 +346,7 @@ On the other hand, the for-loop approach iterates over each element individually
 
 **3b.** Monte Carlo integration can be performed with the following code:
 
-```{r, eval=FALSE}
+```{r}
 monte_carlo = function(N) {
   hits = 0
   for (i in seq_len(N)) {
@@ -381,7 +382,9 @@ monte_carlo_benchmark <- microbenchmark(
 
 print(monte_carlo_benchmark)
 
-monte_carlo_median_times <- aggregate(monte_carlo_benchmark$time, by = list(monte_carlo_benchmark$expr), FUN = median)
+monte_carlo_median_times <- aggregate(monte_carlo_benchmark$time, 
+                                      by = list(monte_carlo_benchmark$expr), 
+                                      FUN = median)
 colnames(monte_carlo_median_times) <- c("Method", "Median_Time")
 monte_carlo_median_times <- monte_carlo_median_times[order(monte_carlo_median_times$Median_Time), ]
 
@@ -398,7 +401,7 @@ cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n",
 
 **3d.** Using the `memoise` function, create a function called `m_fib` that is the memoized version of the recursive function:
 
-```{r, eval=FALSE}
+```{r}
 fib <- function(n)  {
   if(n == 1 || n == 2) return(1)
   fib(n-1) + fib(n-2)
@@ -421,7 +424,9 @@ fib_benchmark <- microbenchmark(
 
 print(fib_benchmark)
 
-fib_median_times <- aggregate(fib_benchmark$time, by = list(fib_benchmark$expr), FUN = median)
+fib_median_times <- aggregate(fib_benchmark$time, 
+                              by = list(fib_benchmark$expr), 
+                              FUN = median)
 colnames(fib_median_times) <- c("Method", "Median_Time")
 fib_median_times <- fib_median_times[order(fib_median_times$Median_Time), ]
 
@@ -452,7 +457,9 @@ fib_benchmark <- microbenchmark(
 
 print(fib_benchmark)
 
-fib_median_times <- aggregate(fib_benchmark$time, by = list(fib_benchmark$expr), FUN = median)
+fib_median_times <- aggregate(fib_benchmark$time, 
+                              by = list(fib_benchmark$expr), 
+                              FUN = median)
 colnames(fib_median_times) <- c("Method", "Median_Time")
 fib_median_times <- fib_median_times[order(fib_median_times$Median_Time), ]
 
@@ -498,7 +505,9 @@ fib_benchmark <- microbenchmark(
 
 print(fib_benchmark)
 
-fib_median_times <- aggregate(fib_benchmark$time, by = list(fib_benchmark$expr), FUN = median)
+fib_median_times <- aggregate(fib_benchmark$time, 
+                              by = list(fib_benchmark$expr), 
+                              FUN = median)
 colnames(fib_median_times) <- c("Method", "Median_Time")
 fib_median_times <- fib_median_times[order(fib_median_times$Median_Time), ]
 
@@ -546,7 +555,7 @@ ggplot(results, aes(x = N, y = median, color = Method)) +
   labs(title = "Fibonacci Computation Time",
        x = "Fibonacci Position (N)",
        y = "Time (nanoseconds)",
-       color = "Method") +e
+       color = "Method") +
   theme_minimal()
 ```
 
@@ -587,7 +596,9 @@ write_benchmark <- microbenchmark(
 
 print(write_benchmark)
 
-write_median_times <- aggregate(write_benchmark$time, by = list(write_benchmark$expr), FUN = median)
+write_median_times <- aggregate(write_benchmark$time, 
+                                by = list(write_benchmark$expr), 
+                                FUN = median)
 colnames(write_median_times) <- c("Method", "Median_Time")
 write_median_times <- write_median_times[order(write_median_times$Median_Time), ]
 
@@ -626,7 +637,7 @@ Q5. Efficient data carpentry
 
 **5a.** Create the following data.frame:
 
-```{r, eval = FALSE}
+```{r}
 df_base = data.frame(colA = "A")
 ```
 
@@ -668,7 +679,7 @@ The dataset is in a wide format, where different income categories are separate 
 
 **5c.** Consider the following string of phone numbers and fruits: 
 
-```{r, eval = FALSE}
+```{r}
 strings = c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
             "387 287 6718", "apple", "233.398.9187  ", "482 952 3315", 
             "239 923 8115", "842 566 4692", "Work: 579-499-7527", 
@@ -704,7 +715,9 @@ benchmark_results <- microbenchmark(
 print(benchmark_results)
 
 # Calculate and display the median execution times
-median_times <- aggregate(benchmark_results$time, by = list(benchmark_results$expr), FUN = median)
+median_times <- aggregate(benchmark_results$time, 
+                          by = list(benchmark_results$expr), 
+                          FUN = median)
 colnames(median_times) <- c("Method", "Median_Time")
 median_times <- median_times[order(median_times$Median_Time), ]
 
@@ -736,7 +749,7 @@ size_num_matrix <- object_size(num_matrix)
 cat(sprintf("Integer matrix size: %s\n", format(size_int_matrix, units = "MB")))
 cat(sprintf("Numeric matrix size: %s\n", format(size_num_matrix, units = "MB")))
 
-size_diff <- size_num / size_int
+size_diff <- size_num_matrix / size_int_matrix
 cat(sprintf("The numeric matrix is %.2f times larger than the integer matrix.\n", size_diff))
 ```
 
@@ -754,26 +767,105 @@ double test1() {
 
 * Save the function `test1()` in a separate file. Make sure it works.
 * Write a similar function in R and compare the speed of the C++ and R versions.
+
+```{r q6c1}
+library(Rcpp)
+
+test1_r <- function() {
+  a <- 1.0 / 81
+  b <- 0
+  for (i in 1:729) {
+    b <- b + a
+  }
+  return(b)
+}
+
+sourceCpp("test1.cpp")
+
+rc_benchmark_results <- microbenchmark(
+  test1(),
+  test1_r(),
+  times = 100
+)
+
+print(rc_benchmark_results)
+
+rc_median_times <- aggregate(rc_benchmark_results$time, 
+                             by = list(rc_benchmark_results$expr), 
+                             FUN = median)
+colnames(rc_median_times) <- c("Method", "Median_Time")
+rc_median_times <- rc_median_times[order(rc_median_times$Median_Time), ]
+
+rc_fastest_method <- rc_median_times$Method[1]
+rc_fastest_time <- rc_median_times$Median_Time[1]
+
+rc_second_fastest_method <- rc_median_times$Method[2]
+rc_second_fastest_time <- rc_median_times$Median_Time[2]
+
+rc_speedup_factor <- rc_second_fastest_time / rc_fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            rc_fastest_method, rc_speedup_factor, rc_second_fastest_method))
+```
+
 * Create a function called `test2()` where the `double` variables have been replaced by `float`. Do you still get the correct answer?
 * Change `b = b + a` to `b += a` to make your code more `C++` like.
 * (Bonus) What's the difference between `i++` and `++i`?
+
+```{r q6c2}
+library(Rcpp)
+
+sourceCpp("test2.cpp")
+
+rc_benchmark_results <- microbenchmark(
+  test2(),
+  test1_r(),
+  times = 100
+)
+
+print(rc_benchmark_results)
+
+rc_median_times <- aggregate(rc_benchmark_results$time, 
+                             by = list(rc_benchmark_results$expr), 
+                             FUN = median)
+colnames(rc_median_times) <- c("Method", "Median_Time")
+rc_median_times <- rc_median_times[order(rc_median_times$Median_Time), ]
+
+rc_fastest_method <- rc_median_times$Method[1]
+rc_fastest_time <- rc_median_times$Median_Time[1]
+
+rc_second_fastest_method <- rc_median_times$Method[2]
+rc_second_fastest_time <- rc_median_times$Median_Time[2]
+
+rc_speedup_factor <- rc_second_fastest_time / rc_fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            rc_fastest_method, rc_speedup_factor, rc_second_fastest_method))
+
+```
+
+The results given by the function `test2()` using `float` instead of `double` are very close to those obtained with `test1()`, but there are some slight differences due to floating-point precision. Usually, `float` is less accurate than `double`, and over many iterations, these small inaccuracies can accumulate.
+
+* `i++` is post-increment: It returns the current value of `i` before incrementing.
+* `++i` is pre-increment: It increments i first, then returns the new value.
+In most cases, the difference is very small, but in codes like loops, `++i` is slightly faster because it avoids an unnecessary copy of the variable.
 
 Q7. Efficient hardware
 ===
 
 **7a.** How much RAM does your computer have? (Optional question, privacy above all. Write a random number if you do not want to share your hardware information.)
+
 ```{r q7a}
-# YOUR CODE GOES HERE
+library("benchmarkme")
+get_ram()
 ```
 
 **7b.** Using your preferred search engine, how much does it cost to double the amount of available RAM on your system? (Again, write a random number if you do not want to share your hardware information)
 
-```{r q7b}
-# YOUR CODE GOES HERE
-```
+Upgrading the RAM on an M1 Max MacBook Pro is not possible after purchase because the memory is built into the M1 chip and cannot be changed. To upgrade the RAM from 34.4 GB to a greater capacity, I'd have to buy a new MacBook Pro with the desired RAM configuration. Apple's RAM upgrade pricing can be very high; for instance, upgrading from 16 GB to 32 GB of RAM might cost approximately €460. 
 
 **7c.** Check if you are using a 32-bit or 64-bit version of R.
 
 ```{r q7c}
-# YOUR CODE GOES HERE
+sessionInfo()
 ```
