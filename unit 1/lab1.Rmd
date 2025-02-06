@@ -1,13 +1,14 @@
 ---
 title: 'Lab 1: Efficient Programming'
 subtitle: "Introduction to Statistical Computing"
-author: 
+author: Elena Conderana & Sergio Cuenca
 date: 
 output:
   pdf_document: 
     toc: true
     number_sections: false
     latex_engine: pdflatex
+always_allow_html: true
 ---
 
 ```{r, include=FALSE}
@@ -35,16 +36,28 @@ This lab is to be done outside of class time. You may collaborate with one class
 Installing and loading packages 
 ===
 
-In order to perform the exercise in this practice you should install and load the `microbenchmark` and `profvis` packages. Also install `devtools` and the `proftools` package from CRAN.
+In order to perform the exercise in this practice you should install the `microbenchmark` and `profvis` packages. Also install `devtools` and the `proftools` package from CRAN.
 
-```{r}
-# YOUR CODE GOES HERE
+```{r, eval=FALSE}
+install.packages("microbenchmark")
+install.packages("profvis")
+install.packages("devtools")
+install.packages("proftools")
 ```
 
+Load the installed packages.
+
+```{r, warning = FALSE}
+library(microbenchmark)
+library(profvis)
+library(devtools)
+library(proftools)
+```
 From the `Bioconductor` repository you must also install the `graph` and `Rgraphviz` packages. To install packages from this repository, you must install `BiocManager` package first and then use the `BiocManager::install()` function to install the packages.
+
 ```{r, eval = FALSE}
 install.packages("BiocManager", dep = TRUE)
-BiocManager::install(c("Rgraphviz","graph"))
+BiocManager::install(c("Rgraphviz","graph"))saa
 ```
 
 Q1. Microbenchmarking
@@ -52,10 +65,10 @@ Q1. Microbenchmarking
 
 **1a.** Use the `microbenchmark::microbenchmark()` function to know which of the following three functions is the fastest to perform the cumulative sum of a 100-element vector. By how much is the fastest with respect to the second one?
 
-```{r q1a, eval=FALSE}
+```{r q1a}
 x <- 1:100 # initiate vector to cumulatively sum
 
-# Method 1: with a for loop (10 lines)
+# Method 1: with a for loop
 cs_for <- function(x) {
   for (i in x) {
     if (i == 1) {
@@ -67,30 +80,121 @@ cs_for <- function(x) {
   xc
 }
 
-# Method 2: with apply (3 lines)
+# Method 2: with apply
 cs_apply <- function(x) {
   sapply(x, function(x) sum(1:x))
 }
 
-# Method 3: cumsum (1 line)
-cumsum(x)
+# Method 3: cumsum
+cs_cumsum <- function(x) {
+  cumsum(x)
+}
 
-# YOUR CODE GOES HERE
+# Benchmark the three methods
+benchmark_results <- microbenchmark(
+  cs_for(x),
+  cs_apply(x),
+  cs_cumsum(x),
+  times = 1000
+)
+
+print(benchmark_results)
+
+median_times <- aggregate(benchmark_results$time, 
+                          by = list(benchmark_results$expr), 
+                          FUN = median)
+colnames(median_times) <- c("Method", "Median_Time")
+median_times <- median_times[order(median_times$Median_Time), ]
+
+fastest_method <- median_times$Method[1]
+fastest_time <- median_times$Median_Time[1]
+
+second_fastest_method <- median_times$Method[2]
+second_fastest_time <- median_times$Median_Time[2]
+
+speedup_factor <- second_fastest_time / fastest_time
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            fastest_method, speedup_factor, second_fastest_method))
+
 ```
 
 **1b.** Run the same benchmark but now `x` is `1:50000`. As the benchmark could take too long, set the argument `time = 1` in the `microbenchmark` function. Does the relative difference between the fastest and the second fastest increase or decrease? By how much?
 
 ```{r q1b}
-# YOUR CODE GOES HERE
+x <- 1:50000
+
+benchmark_results_long <- microbenchmark(
+  cs_for = cs_for(x),
+  cs_apply = cs_apply(x),
+  cs_cumsum = cs_cumsum(x),
+  times = 1
+)
+
+print(benchmark_results_long)
+
+median_times_large <- aggregate(benchmark_results_long$time, 
+                                by = list(benchmark_results_long$expr), 
+                                FUN = median)
+colnames(median_times_large) <- c("Method", "Median_Time")
+median_times_large <- median_times_large[order(median_times_large$Median_Time), ]
+
+fastest_method_large <- median_times_large$Method[1]
+fastest_time_large <- median_times_large$Median_Time[1]
+
+second_fastest_method_large <- median_times_large$Method[2]
+second_fastest_time_large <- median_times_large$Median_Time[2]
+
+speedup_factor_large <- second_fastest_time_large / fastest_time_large
+
+cat(sprintf("For x = 1:50000, the fastest method is %s and it is %.2f times faster than %s.\n", 
+            fastest_method_large, speedup_factor_large, second_fastest_method_large))
+
+speedup_change <- speedup_factor_large / speedup_factor
+
+cat(sprintf("The relative speedup factor has %s by %.2f times compared to x = 1:100.\n",
+            ifelse(speedup_change > 1, "increased", "decreased"), speedup_change))
 ```
 
 **1c.** Try profiling a section of code you have written using the `profvis::profvis()` function. Where are the bottlenecks? Were they where you expected?
 
 ```{r q1c}
-# YOUR CODE GOES HERE
+profvis({
+  
+  x <- 1:50000
+
+  # Method 1: with a for loop
+  cs_for <- function(x) {
+    for (i in x) {
+      if (i == 1) {
+        xc = x[i]
+      } else {
+        xc = c(xc, sum(x[1:i]))
+      }
+    }
+    xc
+  }
+
+  # Method 2: with apply
+  cs_apply <- function(x) {
+    sapply(x, function(x) sum(1:x))
+  }
+  
+  # Method 3: cumsum
+  cs_cumsum <- function(x) {
+    cumsum(x)
+  }
+  
+  cs_for(x)
+  cs_apply(x)
+  cs_cumsum(x)
+})
 ```
 
+The profiling results from the data table and flame graph show that the main bottleneck is located in the `cs_for` function, which computes the cumulative sum using a for loop. 
+These results were expected as this method was the slowest, and it can be confirmed with the profiling, taking 6870 ms and consuming 7497.5 MB of memory. The major problem is that `c(xc, sum(x[1:i]))` continuously appends to` xc`, causing memory reallocation at each iteration, which is very inefficient. `cs_apply` performs much better, taking only 20 ms and almost no memory overhead. Finally, `cumsum` is the fastest, practically taking no time, as it is a function highly optimized at the C level.
+
 **1d.** Let's profile a section of code with the `Rprof()` function. The code section is a function to compute sample variance of a numeric vector:
+
 ```{r}
 # Compute sample variance of numeric vector x
 sampvar <- function(x) {
@@ -131,12 +235,16 @@ Rprof(NULL)
 Use the `summaryRprof()` function to print a summary of the code profiling. Which part of the function takes more time to execute? Which part of the function requires more memory?
 
 ```{r q1d}
-# YOUR CODE GOES HERE
+summaryRprof("Rprof.out", memory = "both")
 ```
 
+The part of the function that takes more time is `sq.var()`, which takes 65% of the total execution time (2.08 out of 3.20 seconds), indicating that computing the sum of squared variances is the bottleneck. Both functions display 0 in the `mem.total` column, indicating that no appreciable variations in memory usage were noted. This is probably because, instead of allocating big objects, both functions work with numeric scalars.
+
 **1e.** `summaryRprof()` function prints a summary of the code profiling, but it is not user-friendly to read. Using the `proftool` packages, let's see the results from the `Rprof.out` file. See the help (`?`) for the functions `readProfiledata` and `plotProfileCallGraph` and plot the results of the code profiling from **1d**.
+
 ```{r q1e}
-# YOUR CODE GOES HERE
+prof_data <- readProfileData("Rprof.out")
+plotProfileCallGraph(prof_data)
 ```
 
 Q2. Efficient set-up
@@ -147,10 +255,10 @@ Let's check if you have an optimal R installation.
 **2a.** What is the exact version of your computer’s operating system?
 
 ```{r q2a}
-# YOUR CODE GOES HERE
+system("sw_vers") 
 ```
 
-**2b.** Start an activity monitor and execute the following chunk.In it, `lapply()` (or its parallel version `mclapply()`) is used to apply a function, median(), over every column in the data frame object X
+**2b.** Start an activity monitor and execute the following chunk. In it, `lapply()` (or its parallel version `mclapply()`) is used to apply a function, `median()`, over every column in the data frame object X
 
 ```{r q2b, eval=FALSE}
 # Note: uses 2+ GB RAM and several seconds or more depending on hardware
@@ -165,14 +273,25 @@ r2 <- parallel::mclapply(X, median)
 **2c.** Try modifying the settings of your RStudio setup using the Tools > Global Options menu. What settings do you think can affect R performance? (Note only some of them, not ALL of them)
 
 ```{r q2c}
-# YOUR CODE GOES HERE
+options(mc.cores = parallel::detectCores() - 1)
 ```
+
+Some setting that affect R performance in RStudio may be:
+ * Memory Allocation: Increase memory limits.
+ * Number of Threads: Adjust `mc.cores` for parallel processing (`Options > Parallel`).
+ * Workspace Handling: Disable automatic `.RData` saving (`Options > General > Save workspace` to `.RData on exit → Never`).
+ * Lazy Data Loading: Set options(`stringsAsFactors = FALSE`) to improve efficiency.
+ * Execution Mode: Enable chunk execution in parallel for large computations (`Tools > Global Options > R Markdown`).
 
 **2d.** Try some of the shortcuts integrated in RStudio. What shortcuts do you think can save you development time? (Note only some of them, not ALL of them)
 
-```{r q2d}
-# YOUR CODE GOES HERE
-```
+Some RStudio shortcuts that can save development time:
+
+ * Run Current Line/Selection: `Cmd + Enter` (Mac) / `Ctrl + Enter` (Windows/Linux)
+ * Comment/Uncomment Code: `Cmd + Shift + C` / `Ctrl + Shift + C`
+ * Insert Code Chunk (R Markdown): `Cmd + Option + I` / `Ctrl + Alt + I`
+ * Navigate Between Tabs: `Cmd + Shift + [` or `Cmd + Shift + ]` / `Ctrl + Shift + Tab`
+ * Find in Files: `Cmd + Shift + F` / `Ctrl + Shift + F`
 
 **2e.** Check how well your computer is suited to perform data analysis tasks. In the following code chunk you will run a benchmark test from the `benchmarkme` package and plot your result against the results from people around the world. Do you think that you should upgrade your computer? 
 
@@ -186,18 +305,48 @@ res_io <- benchmark_io(runs = 1, size = 5)
 plot(res_io)
 ```
 
+Given the results shown in the graphs, my computer performs well on most cases and outperforms the majority of other machines in all tests, so an upgrade is not necessary.
+
 Q3. Efficient programming
 ===
 
 **3a.** Create a vector `x` of 100 random numbers and use the microbenchmark package to compare the vectorised construct `x = x + 1` to the for loop version `for (i in seq_len(n)) x[i] = x[i] + 1`. Try varying the size of the input vector and check how the results differ. Which functions are being called by each method?
 
 ```{r q3a}
-# YOUR CODE GOES HERE
+benchmark_increment <- function(n) {
+  x <- runif(n)
+
+  vec_increment <- function(x) {
+    x <- x + 1
+    x
+  }
+
+  loop_increment <- function(x) {
+    for (i in seq_len(length(x))) {
+      x[i] <- x[i] + 1
+    }
+    x
+  }
+
+  res <- microbenchmark(
+    vectorized = vec_increment(x),
+    loop = loop_increment(x),
+    times = 100
+  )
+
+  print(res)
+}
+
+benchmark_increment(100)
+benchmark_increment(10000)
+benchmark_increment(100000)
 ```
+The vectorized version uses internal C-level optimizations in R. It calls an underlying primitive function that efficiently applies addition across all elements. It is significantly faster than loops.
+On the other hand, the for-loop approach iterates over each element individually, calling the indexing and assignment functions repeatedly. It is much slower, especially for large `n`, due to overhead in handling each assignment separately.
 
 **3b.** Monte Carlo integration can be performed with the following code:
 
-```{r, eval=FALSE}
+```{r}
 monte_carlo = function(N) {
   hits = 0
   for (i in seq_len(N)) {
@@ -209,21 +358,50 @@ monte_carlo = function(N) {
   return(hits / N)
 }
 ```
+
 Create a vectorized function `monte_carlo_vec` which do not use a `for` loop.
 
 ```{r q3b}
-# YOUR CODE GOES HERE
+monte_carlo_vec <- function(N) {
+  u1 <- runif(N)
+  u2 <- runif(N)
+  hits <- sum(u1^2 > u2)
+  return(hits / N)
+}
 ```
 
 **3c.** How much faster is the vectorized function `monte_carlo_vec` with respect to the original function `monte_carlo`?
 
 ```{r q3c}
-# YOUR CODE GOES HERE
+N <- 100000
+monte_carlo_benchmark <- microbenchmark(
+  monte_carlo(N),
+  monte_carlo_vec(N),
+  times = 10
+)
+
+print(monte_carlo_benchmark)
+
+monte_carlo_median_times <- aggregate(monte_carlo_benchmark$time, 
+                                      by = list(monte_carlo_benchmark$expr), 
+                                      FUN = median)
+colnames(monte_carlo_median_times) <- c("Method", "Median_Time")
+monte_carlo_median_times <- monte_carlo_median_times[order(monte_carlo_median_times$Median_Time), ]
+
+monte_carlo_fastest_method <- monte_carlo_median_times$Method[1]
+monte_carlo_fastest_time <- monte_carlo_median_times$Median_Time[1]
+
+monte_carlo_second_fastest_method <- monte_carlo_median_times$Method[2]
+monte_carlo_second_fastest_time <- monte_carlo_median_times$Median_Time[2]
+
+monte_carlo_speedup_factor <- monte_carlo_second_fastest_time / monte_carlo_fastest_time
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            monte_carlo_fastest_method, monte_carlo_speedup_factor, monte_carlo_second_fastest_method))
 ```
 
 **3d.** Using the `memoise` function, create a function called `m_fib` that is the memoized version of the recursive function:
 
-```{r, eval=FALSE}
+```{r}
 fib <- function(n)  {
   if(n == 1 || n == 2) return(1)
   fib(n-1) + fib(n-2)
@@ -233,25 +411,152 @@ fib <- function(n)  {
 Then, using `microbenchmark`, simulate calculating the 10th position of the Fibonacci serie a 100 times with each function. How much faster is the memoized version?
 
 ```{r q3d}
-# YOUR CODE GOES HERE
+library("memoise")
+
+m_fib <- memoise(fib)
+
+N <- 10
+fib_benchmark <- microbenchmark(
+  fib(N),
+  m_fib(N),
+  times = 100
+)
+
+print(fib_benchmark)
+
+fib_median_times <- aggregate(fib_benchmark$time, 
+                              by = list(fib_benchmark$expr), 
+                              FUN = median)
+colnames(fib_median_times) <- c("Method", "Median_Time")
+fib_median_times <- fib_median_times[order(fib_median_times$Median_Time), ]
+
+fib_fastest_method <- fib_median_times$Method[1]
+fib_fastest_time <- fib_median_times$Median_Time[1]
+
+fib_second_fastest_method <- fib_median_times$Method[2]
+fib_second_fastest_time <- fib_median_times$Median_Time[2]
+
+fib_speedup_factor <- fib_second_fastest_time / fib_fastest_time
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            fib_fastest_method, fib_speedup_factor, fib_second_fastest_method))
 ```
 
+For `N = 10`, the memoized version is slightly slower due to the overhead of caching, as each call is computed only once per execution. However, for larger `N`, memoization provides a significant speedup by storing previously computed values and avoiding redundant calculations, making it much more efficient than the standard recursive approach. Trying with `N = 20`, the memoized version is 79.09 times faster than fib(N).
+ 
 **3e.** Try varying the parameters of the **3d** exercise. What happens when you measure the computing time of calculating the 1st position of Fibonacci serie? And the 25th?
 
 ```{r q3e}
-# YOUR CODE GOES HERE
+m_fib <- memoise(fib)
+
+N <- 1
+fib_benchmark <- microbenchmark(
+  fib(N),
+  m_fib(N),
+  times = 100
+)
+
+print(fib_benchmark)
+
+fib_median_times <- aggregate(fib_benchmark$time, 
+                              by = list(fib_benchmark$expr), 
+                              FUN = median)
+colnames(fib_median_times) <- c("Method", "Median_Time")
+fib_median_times <- fib_median_times[order(fib_median_times$Median_Time), ]
+
+fib_fastest_method <- fib_median_times$Method[1]
+fib_fastest_time <- fib_median_times$Median_Time[1]
+
+fib_second_fastest_method <- fib_median_times$Method[2]
+fib_second_fastest_time <- fib_median_times$Median_Time[2]
+
+fib_speedup_factor <- fib_second_fastest_time / fib_fastest_time
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            fib_fastest_method, fib_speedup_factor, fib_second_fastest_method))
 ```
+
+For `N = 1`, as mentioned earlier, the memoized version is much slower than the normal recursive function, mainly because memoization introduces overhead for storing and retrieving cached values, which outweighs any benefits for trivial cases. Since `fib(1)` directly returns a constant value without recursion, caching provides no advantage, making the standard function much faster. However, for larger `N`, memoization greatly reduces redundant calculations, making it more efficient.
 
 **3f.** Create the `c_fib` function as the compilation version of the `fib` function declared in exercise **3d** using the `cmpfun` of the `compiler` package. Which is faster, `fib`, `c_fib` or `m_fib`? And `cm_fib` (compiled version of `m_fib`)? And `mc_fib` (memoized version of `c_fib`)?
 
 ```{r q3f}
-# YOUR CODE GOES HERE
+library(compiler)
+
+# Memoized version
+m_fib <- memoise(fib)
+
+# Compiled version
+c_fib <- cmpfun(fib)
+
+# Compiled memoized version
+cm_fib <- cmpfun(m_fib)
+
+# Memoized compiled version
+mc_fib <- memoise(c_fib)
+
+N <- 25
+fib_benchmark <- microbenchmark(
+  fib(N),
+  m_fib(N),
+  c_fib(N),
+  cm_fib(N),
+  mc_fib(N),
+  times = 10
+)
+
+print(fib_benchmark)
+
+fib_median_times <- aggregate(fib_benchmark$time, 
+                              by = list(fib_benchmark$expr), 
+                              FUN = median)
+colnames(fib_median_times) <- c("Method", "Median_Time")
+fib_median_times <- fib_median_times[order(fib_median_times$Median_Time), ]
+
+fib_fastest_method <- fib_median_times$Method[1]
+fib_fastest_time <- fib_median_times$Median_Time[1]
+
+fib_second_fastest_method <- fib_median_times$Method[2]
+fib_second_fastest_time <- fib_median_times$Median_Time[2]
+
+fib_speedup_factor <- fib_second_fastest_time / fib_fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            fib_fastest_method, fib_speedup_factor, fib_second_fastest_method))
 ```
 
 **Challenge 01.** Calculate the computing time for calculating the Fibonacci serie 5 times from the 1st to the 25th position with the `fib`, `c_fib`, `m_fib`, `cm_fib` and `mc_fib` functions. Store the results for each position and create a plot showing these results. When does it begin to compensate using the memoized version? Hint: Use `geom_point()` and `geom_errorbars()` function of `ggplot2` to show the `median`, `lq` and `uq` values of the `microbenchmark` analysis.
 
 ```{r q3ch1}
-# YOUR CODE GOES HERE
+library(dplyr)
+library(ggplot2)
+
+results <- data.frame()
+for (N in 1:25) {
+  benchmark <- microbenchmark(
+    fib(N),
+    c_fib(N),
+    m_fib(N),
+    cm_fib(N),
+    mc_fib(N),
+    times = 5
+  )
+  
+  summary_data <- summary(benchmark)
+  summary_data$N <- N
+  results <- rbind(results, summary_data)
+}
+
+results <- results %>% rename(Method = expr)
+
+# Plot results
+ggplot(results, aes(x = N, y = median, color = Method)) +
+  geom_point() +
+  geom_line() +
+  geom_errorbar(aes(ymin = lq, ymax = uq), width = 0.5) +
+  labs(title = "Fibonacci Computation Time",
+       x = "Fibonacci Position (N)",
+       y = "Time (nanoseconds)",
+       color = "Method") +
+  theme_minimal()
 ```
 
 Q4. Efficient data I/O
@@ -260,19 +565,71 @@ Q4. Efficient data I/O
 **4a.** Import data from https://github.com/mledoze/countries/raw/master/countries.json using the `import()` function from the `rio` package. 
 
 ```{r q4a}
-# YOUR CODE GOES HERE
+library(rio)
+library(jsonlite)
+
+url <- "https://github.com/mledoze/countries/raw/master/countries.json"
+countries_data <- fromJSON(url, flatten = TRUE)
 ```
 
 **4b.** Export the data imported in **4a** to 3 different file formats of your choosing supported by `rio` (see `vignette("rio")` for supported formats). Try opening these files in external programs. Which file formats are more portable?
 
 ```{r q4b}
-# YOUR CODE GOES HERE
+export(countries_data, "countries.csv")
+export(countries_data, "countries.xlsx")
+export(countries_data, "countries.rds")
 ```
 
 **Challenge 03.** Create a simple benchmark to compare the write times for the different file formats of **4b**. Which is fastest? Which is the most space efficient?
 
 ```{r q4ch3}
-# YOUR CODE GOES HERE
+csv_file <- "countries.csv"
+xlsx_file <- "countries.xlsx"
+rds_file <- "countries.rds"
+
+write_benchmark <- microbenchmark(
+  export(countries_data, csv_file),
+  export(countries_data, xlsx_file),
+  export(countries_data, rds_file),
+  times = 5
+)
+
+print(write_benchmark)
+
+write_median_times <- aggregate(write_benchmark$time, 
+                                by = list(write_benchmark$expr), 
+                                FUN = median)
+colnames(write_median_times) <- c("Method", "Median_Time")
+write_median_times <- write_median_times[order(write_median_times$Median_Time), ]
+
+write_fastest_method <- write_median_times$Method[1]
+write_fastest_time <- write_median_times$Median_Time[1]
+
+write_second_fastest_method <- write_median_times$Method[2]
+write_second_fastest_time <- write_median_times$Median_Time[2]
+
+write_speedup_factor <- write_second_fastest_time / write_fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            write_fastest_method, write_speedup_factor, write_second_fastest_method))
+
+file_sizes <- data.frame(
+  Format = c("CSV", "XLSX", "RDS"),
+  Size_MB = c(
+    file.size(csv_file) / 1024^2,
+    file.size(xlsx_file) / 1024^2,
+    file.size(rds_file) / 1024^2
+  )
+)
+
+print(file_sizes)
+
+most_efficient_format <- file_sizes$Format[which.min(file_sizes$Size_MB)]
+smallest_size <- min(file_sizes$Size_MB)
+
+cat(sprintf("The most space-efficient format is %s, with a file size of %.2f MB.\n", 
+            most_efficient_format, smallest_size))
+
 ```
 
 Q5. Efficient data carpentry
@@ -280,34 +637,49 @@ Q5. Efficient data carpentry
 
 **5a.** Create the following data.frame:
 
-```{r, eval = FALSE}
+```{r}
 df_base = data.frame(colA = "A")
 ```
 
 Try and guess the output of the following commands. Quit the `eval = FALSE` argument and check if the output is what you thought.
 
-```{r, eval = FALSE}
+```{r}
 print(df_base)
 df_base$colA
 df_base$col
 df_base$colB
 ```
 
-Now create a tibble tbl_df and repeat the above commands.
+Now create a tibble `tbl_df` and repeat the above commands.
 
 ```{r q5a}
-# YOUR CODE GOES HERE
+tbl_df <- tibble(colA = "A")
+
+tbl_df$colA
+tbl_df$col
+tbl_df$colB
 ```
 
-**5b.** Load and look at subsets of the `pew` and `lnd_geo_df` datasets from the `efficient` package. What is untidy about them? Convert each of these datasets into tidy form.
+**5b.** Load and look at subsets of the `pew` dataset. What is untidy about it? Convert it into tidy form.
 
 ```{r q5b}
-# YOUR CODE GOES HERE
+library(tidyverse)
+
+pew <- read.csv("pew.csv")
+
+pew_tidy <- pew %>%
+  pivot_longer(
+    cols = -religion,
+    names_to = "Income",
+    values_to = "Count"
+  )
 ```
+
+The dataset is in a wide format, where different income categories are separate columns instead of being a single one. A tidy dataset should have each observation in its own row, with three columns: Religion, Income, and Count.
 
 **5c.** Consider the following string of phone numbers and fruits: 
 
-```{r, eval = FALSE}
+```{r}
 strings = c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
             "387 287 6718", "apple", "233.398.9187  ", "482 952 3315", 
             "239 923 8115", "842 566 4692", "Work: 579-499-7527", 
@@ -317,7 +689,13 @@ strings = c(" 219 733 8965", "329-293-8753 ", "banana", "595 794 7569",
 Write expressions in `stringr` and `base R` that return a logical vector reporting whether or not each string contains a number.
 
 ```{r q5c}
-# YOUR CODE GOES HERE
+library(stringr)
+
+contains_number_stringr <- str_detect(strings, "\\d")
+print(contains_number_stringr)
+
+contains_number_baseR <- grepl("\\d", strings)
+print(contains_number_baseR)
 ```
 
 Q6. Efficient optimization
@@ -326,13 +704,53 @@ Q6. Efficient optimization
 **6a.** Create a vector `x` and benchmark `any(is.na(x))` against `anyNA(x)`. Do the results vary with the size of the vector?
 
 ```{r q6a}
-# YOUR CODE GOES HERE
+x <- sample(c(1:1e6, NA), 1e6, replace = TRUE)
+
+benchmark_results <- microbenchmark(
+  any(is.na(x)),
+  anyNA(x),
+  times = 100
+)
+
+print(benchmark_results)
+
+# Calculate and display the median execution times
+median_times <- aggregate(benchmark_results$time, 
+                          by = list(benchmark_results$expr), 
+                          FUN = median)
+colnames(median_times) <- c("Method", "Median_Time")
+median_times <- median_times[order(median_times$Median_Time), ]
+
+fastest_method <- median_times$Method[1]
+fastest_time <- median_times$Median_Time[1]
+
+second_fastest_method <- median_times$Method[2]
+second_fastest_time <- median_times$Median_Time[2]
+
+speedup_factor <- second_fastest_time / fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            fastest_method, speedup_factor, second_fastest_method))
 ```
 
-**6b.** Construct a `matrix` of `integer`s and a `matrix` of `numeric`s and use a `pryr::object_size()` to compare the object occupation.
+The function `anyNA(x)` is a more efficient alternative to `any(is.na(x))`, as it directly checks for missing values without creating an intermediate logical vector. Hence, the larger the vector, the greater the speed advantage of `anyNA(x)`.
+
+**6b.** Construct a `matrix` of `integer` and a `matrix` of `numeric`s and use a `pryr::object_size()` to compare the object occupation.
 
 ```{r q6b}
-# YOUR CODE GOES HERE
+library(pryr)
+
+int_matrix <- matrix(1L:1e6, nrow = 1000, ncol = 1000)
+num_matrix <- matrix(as.numeric(1:1e6), nrow = 1000, ncol = 1000)
+
+size_int_matrix <- object_size(int_matrix)
+size_num_matrix <- object_size(num_matrix)
+
+cat(sprintf("Integer matrix size: %s\n", format(size_int_matrix, units = "MB")))
+cat(sprintf("Numeric matrix size: %s\n", format(size_num_matrix, units = "MB")))
+
+size_diff <- size_num_matrix / size_int_matrix
+cat(sprintf("The numeric matrix is %.2f times larger than the integer matrix.\n", size_diff))
 ```
 
 **6c.** Consider the following piece of code:
@@ -346,28 +764,108 @@ double test1() {
   return b;
 }
 ```
+
 * Save the function `test1()` in a separate file. Make sure it works.
 * Write a similar function in R and compare the speed of the C++ and R versions.
+
+```{r q6c1}
+library(Rcpp)
+
+test1_r <- function() {
+  a <- 1.0 / 81
+  b <- 0
+  for (i in 1:729) {
+    b <- b + a
+  }
+  return(b)
+}
+
+sourceCpp("test1.cpp")
+
+rc_benchmark_results <- microbenchmark(
+  test1(),
+  test1_r(),
+  times = 100
+)
+
+print(rc_benchmark_results)
+
+rc_median_times <- aggregate(rc_benchmark_results$time, 
+                             by = list(rc_benchmark_results$expr), 
+                             FUN = median)
+colnames(rc_median_times) <- c("Method", "Median_Time")
+rc_median_times <- rc_median_times[order(rc_median_times$Median_Time), ]
+
+rc_fastest_method <- rc_median_times$Method[1]
+rc_fastest_time <- rc_median_times$Median_Time[1]
+
+rc_second_fastest_method <- rc_median_times$Method[2]
+rc_second_fastest_time <- rc_median_times$Median_Time[2]
+
+rc_speedup_factor <- rc_second_fastest_time / rc_fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            rc_fastest_method, rc_speedup_factor, rc_second_fastest_method))
+```
+
 * Create a function called `test2()` where the `double` variables have been replaced by `float`. Do you still get the correct answer?
 * Change `b = b + a` to `b += a` to make your code more `C++` like.
 * (Bonus) What's the difference between `i++` and `++i`?
+
+```{r q6c2}
+library(Rcpp)
+
+sourceCpp("test2.cpp")
+
+rc_benchmark_results <- microbenchmark(
+  test2(),
+  test1_r(),
+  times = 100
+)
+
+print(rc_benchmark_results)
+
+rc_median_times <- aggregate(rc_benchmark_results$time, 
+                             by = list(rc_benchmark_results$expr), 
+                             FUN = median)
+colnames(rc_median_times) <- c("Method", "Median_Time")
+rc_median_times <- rc_median_times[order(rc_median_times$Median_Time), ]
+
+rc_fastest_method <- rc_median_times$Method[1]
+rc_fastest_time <- rc_median_times$Median_Time[1]
+
+rc_second_fastest_method <- rc_median_times$Method[2]
+rc_second_fastest_time <- rc_median_times$Median_Time[2]
+
+rc_speedup_factor <- rc_second_fastest_time / rc_fastest_time
+
+cat(sprintf("The fastest method is %s, and it is %.2f times faster than %s.\n", 
+            rc_fastest_method, rc_speedup_factor, rc_second_fastest_method))
+
+```
+
+The results given by the function `test2()` using `float` instead of `double` are very close to those obtained with `test1()`, but there are some slight differences due to floating-point precision. Usually, `float` is less accurate than `double`, and over many iterations, these small inaccuracies can accumulate.
+
+* `i++` is post-increment: It returns the current value of `i` before incrementing.
+* `++i` is pre-increment: It increments i first, then returns the new value.
+In most cases, the difference is very small, but in codes like loops, `++i` is slightly faster because it avoids an unnecessary copy of the variable.
 
 Q7. Efficient hardware
 ===
 
 **7a.** How much RAM does your computer have? (Optional question, privacy above all. Write a random number if you do not want to share your hardware information.)
+
 ```{r q7a}
-# YOUR CODE GOES HERE
+library("benchmarkme")
+get_ram()
 ```
 
 **7b.** Using your preferred search engine, how much does it cost to double the amount of available RAM on your system? (Again, write a random number if you do not want to share your hardware information)
 
-```{r q7b}
-# YOUR CODE GOES HERE
-```
+Upgrading the RAM on an M1 Max MacBook Pro is not possible after purchase because the memory is built into the M1 chip and cannot be changed. To upgrade the RAM from 34.4 GB to a greater capacity, I'd have to buy a new MacBook Pro with the desired RAM configuration. Apple's RAM upgrade pricing can be very high; for instance, upgrading from 16 GB to 32 GB of RAM might cost approximately €460. 
 
 **7c.** Check if you are using a 32-bit or 64-bit version of R.
 
 ```{r q7c}
-# YOUR CODE GOES HERE
+sessionInfo()
 ```

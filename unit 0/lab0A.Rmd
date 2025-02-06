@@ -94,14 +94,16 @@ std.0.5 <- sd(bin.draws.0.5)
 print(paste("Mean:",mean(bin.draws.0.5)))
 print(paste("Standard Deviation: ", sd(bin.draws.0.5)))
 ```
-Expected mean is 7.5 (15 * 0.5), very close to the calculated mean.
-Expected std is 1.9364916731037085 (sqrt(15 * 0.5 * (1 - 0.5))), very close as well to calculated std.
+
+The expected mean is 7.5 `(15 x 0.5)`, very close to the calculated mean.
+Expected std is 1.9364916731037085 (`sqrt(15 * 0.5 * (1 - 0.5))`), very close as well to calculated standard deviation.
 
 **1f.** Call `summary()` on `bin.draws.0.5` and describe the result.
 
 ```{r q1f}
 summary(bin.draws.0.5)
 ```
+
 The values of the distribution range from 3 to 13. The mean is slightly higher than the median, which suggests that there is a similar amount of values above and below 7. However, there is a slight skew in the distribution, that indicates the existence of a higher concentration on higher values rather than lower ones.
 
 **1g.** Call `str()` on `bin.draws.0.5` and describe the result.
@@ -109,6 +111,7 @@ The values of the distribution range from 3 to 13. The mean is slightly higher t
 ```{r q1g}
 str(bin.draws.0.5)
 ```
+
 The result are the values of the vector.
 
 **1h.** Find the data type of the elements in `bin.draws.0.5` using `typeof()`. Then convert `bin.draws.0.5` to a vector of characters, storing the result as `bin.draws.0.5.char`, and use `typeof()` again to verify that you've done the conversion correctly. Call `summary()` on `bin.draws.0.5.char`. Is the result formatted differently from what you saw above? Why?
@@ -119,8 +122,8 @@ bin.draws.0.5.char <- as.character(bin.draws.0.5)
 print(paste('Type after conversion:', typeof(bin.draws.0.5.char)))
 summary(bin.draws.0.5.char)
 ```
-Since the values have been converted to characters, summary cannot perform any computation on the values. It extracts vector metrics that indicate the amount of elements and their type.
 
+Since the values have been converted to characters, summary cannot perform any computation on the values. It extracts vector metrics that indicate the amount of elements and their type.
 
 Q2. Some simple plots
 ===
@@ -136,22 +139,24 @@ hist(bin.draws.0.5)
 ```{r q2b}
 tabulate(bin.draws.0.5)
 ```
-Tabulate counts the occurrences of integer values in the vector bin.draws.0.5. The output vector matches exactly the histogram, as hist only represents visually these values.
+
+The `tabulate()` function counts the occurrences of integer values in the vector bin.draws.0.5. The output vector matches exactly the histogram, as hist only represents visually these values.
 
 **2c.** Call `plot()` on `bin.draws.0.5` to display your random values from the binomial distribution. Can you interpret what the `plot()` function is doing here?
 
 ```{r q2c}
 plot(bin.draws.0.5)
 ```
-Plot represents every single element in the vector. It plots every element as a function of their index (x-axis) and value (y-axis).
+
+The `plot()` function represents every single element in the vector. It plots every element as a function of their index (x-axis) and value (y-axis).
 
 **2d.** Call `plot()` with two arguments, the first being `1:500`, and the second being `bin.draws.0.5`. This creates a scatterplot of `bin.draws.0.5` (on the y-axis) versus the indices 1 through 500 (on the x-axis). Does this match your plot from the last question?
 
 ```{r q2d}
 plot(1:500, bin.draws.0.5)
 ```
-The resulting plot is equivalent to the previous plot, since the indexes of the vector range between 1 and 500.
 
+The resulting plot is equivalent to the previous plot, since the indexes of the vector range between 1 and 500.
 
 Q3. More binomials, more plots
 ===
@@ -219,7 +224,10 @@ names(means) <- c("bin.draws.0.2", "bin.draws.0.3", "bin.draws.0.4", "bin.draws.
 to see in the theoretical population (i.e., with an infinite amount of draws, rather than 
 just 500 draws).
 
+<<<<<<< HEAD:unit 0/LabPractice_0_1_Introduction.Rmd
     
+=======
+>>>>>>> 4073cfb078b5652ca8e31ece7a2c40f83b689892:unit 0/lab0A.Rmd
 ```{r q3d}
 probabilities <- c(0.2,0.3,0.4,0.5,0.6,0.7,0.8)
 plot(probabilities, means, main = 'Mean vs probability')
@@ -248,6 +256,7 @@ max(bin.matrix[,1])
 print('Largest element in all but 1st column')
 max(bin.matrix[,-1])
 ```
+
 **4c.** Calculate the column means of `bin.matrix` by using just a single function call.
 
 ```{r q4c}
@@ -260,9 +269,8 @@ matrix.means <- colMeans(bin.matrix)
 print(matrix.means==means)
 print(identical(matrix.means, means))
 ```
-== makes a pairwaise comparison of the value of every element in the vector. It outputs TRUE for every element, which is correct as they share the same values.
 
-identical checks if both vectors are exactly the same, which is not the case as means is a vector and matrix.means a named vector. 
+The `==` command makes a pairwise comparison of the value of every element in the vector. It outputs TRUE for every element, which is correct as they share the same values.On the other hand `identical` checks if both vectors are exactly the same, which is not the case as means is a vector and matrix.means a named vector. 
 
 **4e.** Take the transpose of `bin.matrix` and then take row means. Are these the same as what you just computed? Should they be?
 
@@ -271,6 +279,7 @@ transpose.bin.matrix <- t(bin.matrix)
 transpose.matrix.means <- rowMeans(transpose.bin.matrix)
 print(transpose.matrix.means == matrix.means)
 ```
+
 The means are equivalent to the previous ones. Transposing a matrix flips its values, inverting the columns and rows, therefore the equivalent result is expected.
 
 Q5. Warm up is over, let's go big
@@ -302,6 +311,7 @@ print(paste("Standard Deviation of big standardized: ", std.big.standardized))
 ```{r q5d}
 mean(big.bin.draws.standardized > 1.644854)
 ```
+
 The proportion is very close to 0.05.
 
 Q6. Now let's go really big
@@ -323,6 +333,7 @@ print(paste("Standard Deviation of big: ", std.huge))
 print(paste('Expected mean: ',10e6 * 50e-8))
 print(paste('Expected std: ', sqrt(10e6 * 50e-8 * (1 - 50e-8))))
 ```
+
 Both the mean and the std are very close to the expected values. It took longer to to generate the initial vector (17.36s) than to compute the mean (0.21s) and std (1.50s).
 
 **6c.** Calculate the median of `huge.bin.draws`. Did this median calculation take longer than the calculating the mean? Is this surprising?
@@ -331,6 +342,7 @@ Both the mean and the std are very close to the expected values. It took longer 
 system.time(median(huge.bin.draws))
 median(huge.bin.draws)
 ```
+
 It took longer to calculate the median than the mean. It makes sense, because the median needs to put all values in ascending order to find the value in the middle.
 
 **6d.** Calculate the exponential of the median of the logs of `huge.bin.draws`, in one line of code. Did this take longer than the median calculation applied to `huge.bin.draws` directly? Is this surprising?
@@ -339,6 +351,7 @@ It took longer to calculate the median than the mean. It makes sense, because th
 system.time(exp(median(log(huge.bin.draws,base = exp(1)))))
 exp(median(log(huge.bin.draws,base = exp(1))))
 ```
+
 It took longer to calculate this median, which is logical, because we are applying two additional calculations the log and exponential functions.
 
 **6e.** Plot a histogram of of `huge.bin.draws`, again with a large setting of the `breaks` argument (e.g., `breaks=100`). Describe what you see; is this different from before, when we had 3 million draws? **Challenge**: Is this surprising? What distribution is this?
@@ -346,6 +359,7 @@ It took longer to calculate this median, which is logical, because we are applyi
 ```{r q6e}
 hist(huge.bin.draws, breaks=100)
 ```
+
 The initial distribution was more similar to a normal distribution and had values only up to 13. The current histogram follows a log-normal distribution. It does come as a surprise, because the sum of a large number of independent trials should tend towards a normal distribution according to the Central Limit Theorem. 
 
 Q7. Going big with lists
@@ -396,6 +410,10 @@ List: 320MB
 Lists can store different type of data, which require more complex structures than vectors. For the current purpose I do not think it is very useful to use lists, since all elements are integers. 
 
 ### Hint #2. Cleaning the workspace and freeing memory
+<<<<<<< HEAD:unit 0/LabPractice_0_1_Introduction.Rmd
+=======
+
+>>>>>>> 4073cfb078b5652ca8e31ece7a2c40f83b689892:unit 0/lab0A.Rmd
 We can check which variables we have loaded in the workspace using the `ls()` function and delete variables from the workspace using the `rm()` function. To delete all the variables in the workspace:
 
 ```{r qh21}
@@ -407,6 +425,10 @@ However, this does not involve to free the memory that was occupied by the objec
 ```{r qh22}
 gc()
 ```
+<<<<<<< HEAD:unit 0/LabPractice_0_1_Introduction.Rmd
+=======
+
+>>>>>>> 4073cfb078b5652ca8e31ece7a2c40f83b689892:unit 0/lab0A.Rmd
 ### Hint #3. Loading data from files
 
 To read a data from a $.csv$, $.txt$ or a $.dat$ file, the most used option is the $read.table()$ function with a suitable $sep$ argument depending on the file. You can execute $?read.table$ to see the help documentation for this function with usage examples. 
