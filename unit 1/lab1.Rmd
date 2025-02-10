@@ -856,13 +856,12 @@ Q7. Efficient hardware
 **7a.** How much RAM does your computer have? (Optional question, privacy above all. Write a random number if you do not want to share your hardware information.)
 
 ```{r q7a}
-library("benchmarkme")
 get_ram()
 ```
 
 **7b.** Using your preferred search engine, how much does it cost to double the amount of available RAM on your system? (Again, write a random number if you do not want to share your hardware information)
 
-Upgrading the RAM on an M1 Max MacBook Pro is not possible after purchase because the memory is built into the M1 chip and cannot be changed. To upgrade the RAM from 34.4 GB to a greater capacity, I'd have to buy a new MacBook Pro with the desired RAM configuration. Apple's RAM upgrade pricing can be very high; for instance, upgrading from 16 GB to 32 GB of RAM might cost approximately €460. 
+Upgrading the RAM on an M1 Max MacBook Pro is not possible after purchase because the memory is built into the M1 chip and cannot be changed. To upgrade the RAM from 34.4 GB to a greater capacity, I'd have to buy a new MacBook Pro with the desired RAM configuration. Apple's RAM upgrade pricing can be very high; for instance, upgrading from 16 GB to 32 GB of RAM might cost approximately 460€. 
 
 **7c.** Check if you are using a 32-bit or 64-bit version of R.
 
