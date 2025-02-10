@@ -2,7 +2,7 @@
 title: 'Lab 1: Efficient Programming'
 subtitle: "Introduction to Statistical Computing"
 author: Elena Conderana & Sergio Cuenca
-date: 
+date: 10/02/2025
 output:
   pdf_document: 
     toc: true

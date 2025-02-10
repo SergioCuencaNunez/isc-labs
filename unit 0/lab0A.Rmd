@@ -253,7 +253,6 @@ max(bin.matrix[,1])
 print('Largest element in all but 1st column')
 max(bin.matrix[,-1])
 ```
-
 **4c.** Calculate the column means of `bin.matrix` by using just a single function call.
 
 ```{r q4c}
@@ -357,7 +356,7 @@ It took longer to calculate this median, which is logical, because we are applyi
 hist(huge.bin.draws, breaks=100)
 ```
 
-The initial distribution was more similar to a normal distribution and had values only up to 13. The current histogram follows a log-normal distribution. It does come as a surprise, because the sum of a large number of independent trials should tend towards a normal distribution according to the Central Limit Theorem. 
+The initial distribution was more similar to a normal distribution and had values only up to 13. The current histogram follows a `log-normal` distribution. It does come as a surprise, because the sum of a large number of independent trials should tend towards a normal distribution according to the Central Limit Theorem. 
 
 Q7. Going big with lists
 ===
@@ -385,7 +384,7 @@ system.time(lapply(big.bin.draws.list, standardize))
 big.bin.draws.list.standardized.slow = lapply(big.bin.draws.list, standardize)
 ```
 
-The function `lapply` took longer than the code in question 5b, which only needed 0.02s. This function works as a `for` loop, in comparison to the code in question 5b, which standardizes the vector using a vectorized approach.
+The function `lapply` took longer than the code in Q5b, which only needed 0.02s. This function works as a `for` loop, in comparison to the code in Q5b, which standardizes the vector using a vectorized approach.
 
 **7c.** Run the code below, which again standardizes the binomial draws in the list `big.bin.draws.list`, using `lapply()`. Why is it so much slower than the code in the last question? (You may stop evaluation if it is taking too long!) Think about what is happening each time the function is called.
 
