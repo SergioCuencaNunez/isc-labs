@@ -224,10 +224,7 @@ names(means) <- c("bin.draws.0.2", "bin.draws.0.3", "bin.draws.0.4", "bin.draws.
 to see in the theoretical population (i.e., with an infinite amount of draws, rather than 
 just 500 draws).
 
-<<<<<<< HEAD:unit 0/LabPractice_0_1_Introduction.Rmd
-    
 =======
->>>>>>> 4073cfb078b5652ca8e31ece7a2c40f83b689892:unit 0/lab0A.Rmd
 ```{r q3d}
 probabilities <- c(0.2,0.3,0.4,0.5,0.6,0.7,0.8)
 plot(probabilities, means, main = 'Mean vs probability')
@@ -256,7 +253,6 @@ max(bin.matrix[,1])
 print('Largest element in all but 1st column')
 max(bin.matrix[,-1])
 ```
-
 **4c.** Calculate the column means of `bin.matrix` by using just a single function call.
 
 ```{r q4c}
@@ -334,7 +330,7 @@ print(paste('Expected mean: ',10e6 * 50e-8))
 print(paste('Expected std: ', sqrt(10e6 * 50e-8 * (1 - 50e-8))))
 ```
 
-Both the mean and the std are very close to the expected values. It took longer to to generate the initial vector (17.36s) than to compute the mean (0.21s) and std (1.50s).
+Both the mean and the std are very close to the expected values. It took longer to to generate the initial vector (`17.36s`) than to compute the mean (`0.21s`) and standard deviation (`1.50s`).
 
 **6c.** Calculate the median of `huge.bin.draws`. Did this median calculation take longer than the calculating the mean? Is this surprising?
 
@@ -360,7 +356,7 @@ It took longer to calculate this median, which is logical, because we are applyi
 hist(huge.bin.draws, breaks=100)
 ```
 
-The initial distribution was more similar to a normal distribution and had values only up to 13. The current histogram follows a log-normal distribution. It does come as a surprise, because the sum of a large number of independent trials should tend towards a normal distribution according to the Central Limit Theorem. 
+The initial distribution was more similar to a normal distribution and had values only up to 13. The current histogram follows a `log-normal` distribution. It does come as a surprise, because the sum of a large number of independent trials should tend towards a normal distribution according to the Central Limit Theorem. 
 
 Q7. Going big with lists
 ===
@@ -375,6 +371,7 @@ length(big.bin.draws.list)==length(big.bin.draws)
 print('1159th element is equal:')
 big.bin.draws.list[1159]==big.bin.draws[1159]
 ```
+
 **7b.** Run the code below, to standardize the binomial draws in the list `big.bin.draws.list`. Note that `lapply()` applies the function supplied in the second argument to every element of the list supplied in the first argument, and then returns a list of the function outputs. (We'll learn much more about the `apply()` family of functions later in the course.) Did this `lapply()` command take longer to evaluate than the code you wrote in Q5b? (It should have; otherwise your previous code could have been improved, so go back and improve it.) Why do you think this is the case?
 
 ```{r, eval=FALSE}
@@ -386,7 +383,8 @@ standardize = function(x) {
 system.time(lapply(big.bin.draws.list, standardize))
 big.bin.draws.list.standardized.slow = lapply(big.bin.draws.list, standardize)
 ```
-Lapply took longer than the code in Q5b, which only needed 0.02s. Lapply works as a for loop, in comparison to the code in Q5b, which standardizes the vector using a vectorized approach.
+
+The function `lapply` took longer than the code in Q5b, which only needed 0.02s. This function works as a `for` loop, in comparison to the code in Q5b, which standardizes the vector using a vectorized approach.
 
 **7c.** Run the code below, which again standardizes the binomial draws in the list `big.bin.draws.list`, using `lapply()`. Why is it so much slower than the code in the last question? (You may stop evaluation if it is taking too long!) Think about what is happening each time the function is called.
 
@@ -397,6 +395,7 @@ standardize.slow = function(x) {
 big.bin.draws.list.standardized.slow = lapply(big.bin.draws.list, standardize.slow)
 system.time(lapply(big.bin.draws.list, standardize.slow))
 ```
+
 This code is much slower, because for the standardization of every element the mean and std of the complete vector is being newly calculated, as opposed to the previous code, where they were already calculated and used as a number.
 
 **7d.** Lastly, let's look at memory usage. The command `object.size(x)` returns the number of bytes used to store the object `x` in your current R session. Find the number of bytes used to store `big.bin.draws` and `big.bin.draws.list`. How many megabytes (MB) is this, for each object? Which object requires more memory, and why do you think this is the case? Remind yourself: why are lists special compared to vectors, and is this property important for the current purpose (storing the binomial draws)?
@@ -405,15 +404,15 @@ This code is much slower, because for the standardization of every element the m
 object.size(big.bin.draws)
 object.size(big.bin.draws.list)
 ```
+
 vector: 20MB
 List: 320MB
-Lists can store different type of data, which require more complex structures than vectors. For the current purpose I do not think it is very useful to use lists, since all elements are integers. 
+
+Lists can store different type of data, which require more complex structures than vectors. For the current purpose It is not very useful to use lists, since all elements are integers. 
 
 ### Hint #2. Cleaning the workspace and freeing memory
-<<<<<<< HEAD:unit 0/LabPractice_0_1_Introduction.Rmd
 =======
 
->>>>>>> 4073cfb078b5652ca8e31ece7a2c40f83b689892:unit 0/lab0A.Rmd
 We can check which variables we have loaded in the workspace using the `ls()` function and delete variables from the workspace using the `rm()` function. To delete all the variables in the workspace:
 
 ```{r qh21}
@@ -425,10 +424,9 @@ However, this does not involve to free the memory that was occupied by the objec
 ```{r qh22}
 gc()
 ```
-<<<<<<< HEAD:unit 0/LabPractice_0_1_Introduction.Rmd
+
 =======
 
->>>>>>> 4073cfb078b5652ca8e31ece7a2c40f83b689892:unit 0/lab0A.Rmd
 ### Hint #3. Loading data from files
 
 To read a data from a $.csv$, $.txt$ or a $.dat$ file, the most used option is the $read.table()$ function with a suitable $sep$ argument depending on the file. You can execute $?read.table$ to see the help documentation for this function with usage examples. 
@@ -606,7 +604,8 @@ typeof(x.vec)
 sum(x.vec)
 (100/2)*(1+100) #Gauss' method
 ```
-Sum() uses an iterative approach, therefore it took 99 additions.
+
+The `sum()` function uses an iterative approach, therefore it took 99 additions.
 
 **9b.** Convert `x.vec` into a matrix with 20 rows and 5 columns, and store this as `x.mat`. Here `x.mat` should be filled out in the default order (column major order). Check the dimensions of `x.mat`, and the data type as well. Compute the sums of each of the 5 columns of `x.mat`, by calling a built-in R function. Check (using a comparison operator) that the sum of column sums of `x.mat` equals the sum of `x.vec`.
 
@@ -721,7 +720,6 @@ colnames(pros.dat)[10] <- "ldens"
 head(pros.dat,6)
 ```
 
-
 Q11. Exploratory data analysis with plots
 ===
 
@@ -733,10 +731,10 @@ hist(pros.dat[,'lweight'], main='Log Cancer Weight', breaks = 20, xlab='Log Weig
 plot(pros.dat[,'lweight'],pros.dat[,'lcavol'], main='Log cancer volume vs Log cancer weight',xlab='Log Weight', ylab='Log Volume')
 cor(pros.dat[,'lweight'],pros.dat[,'lcavol'])
 ```
-Log cancer weight follows more or less a normal distribution with a skew towards higher values. 
-Log cancer volume has no clear distribution of the values.
-There is no clear relationship between the weight and the volume, even though I expected there to be a positive correlation between both.
-The correlation coefficient is a possible measure. In this case it shows a weak relationship, just 0.28.
+
+* `log cancer weight` follows more or less a normal distribution with a skew towards higher values. 
+* `log cancer volume` has no clear distribution of the values.
+There is no clear relationship between the weight and the volume, even though it is expected to have a positive correlation between both. The correlation coefficient is a possible measure. In this case it shows a weak relationship, just 0.28.
 
 **11b.** Produce scatterplots of log cancer weight versus age, and log cancer volume versus age. Do you see relationships here between the age of a patient and the volume/weight of his cancer?
 
@@ -744,8 +742,9 @@ The correlation coefficient is a possible measure. In this case it shows a weak 
 plot(pros.dat[,'age'], pros.dat[,'lweight'], main='Age vs Log cancer weight',xlab='Age', ylab='Log Weight')
 plot(pros.dat[,'age'],pros.dat[,'lcavol'], main='Log cancer volume vs Age',xlab='Age', ylab='Log Volume')
 ```
-Between age and weight a slight positive upward trend may be inferred. 
-Between age and volume there is no intuitive relationship. For both cases the amount of cases is more concentrated on higher ages.
+
+Between `age` and `weight` a slight positive upward trend may be inferred. 
+Between `age` and `volume` there is no intuitive relationship. For both cases the amount of cases is more concentrated on higher ages.
 
 **11c.** Produce a histogram of the log cancer density, and a scatterplot of the log cancer density versus age. Comment on any similarities/differences you see between these plots, and the corresponding ones you produced above for log cancer volume/weight.
 
@@ -769,7 +768,8 @@ plot(pros.dat[pros.dat[, 'ldens'] >= lower_bound & pros.dat[, 'ldens'] <= upper_
      ylab = 'Log Density')
 
 ```
-The log density, as opposed to the log volume and log weight seems to follow a logarithmic distribution.
+
+The `log density`, as opposed to the `log volume` and `log weight` seems to follow a logarithmic distribution.
 With respect to the age there is no clear pattern as how it relates to the log density, though the highest densities seem to be concentrated between 55 and 65.
 
 **11d.** Delete the last column, corresponding to the log cancer density, from the `pros.dat` matrix, using negative integer indexing.
@@ -804,7 +804,8 @@ pros.dat.svi.avg <- colMeans(pros.dat.svi)
 pros.dat.no.svi.avg <- colMeans(pros.dat.no.svi)
 
 ```
-Variables lcavol, lbph, svi, lcp and pgg45 have different means. 
+
+Variables `lcavol`, `lbph`, `svi`, `lcp` and `pgg45` have different means. 
 
 Q13. Computing standard deviations using iteration
 ===
@@ -849,9 +850,11 @@ Q14. Computing t-tests using vectorization
 ===
 
 **14a.** Recall that the **two-sample (unpaired) t-statistic** between data sets $X=(X_1,\ldots,X_n)$ and $Y=(Y_1,\ldots,Y_m)$ is:
+
 $$
 T = \frac{\bar{X} - \bar{Y}}{\sqrt{\frac{s_X^2}{n} + \frac{s_Y^2}{m}}},
 $$
+
 where $\bar{X}=\sum_{i=1}^n X_i/n$ is the sample mean of $X$, $s_X^2 = \sum_{i=1}^n (X_i-\bar{X})^2/(n-1)$ is the sample variance of $X$, and similarly for $\bar{Y}$ and $s_Y^2$. We will compute these t-statistics for all 9 variables in our data set, where $X$ will play the role of one of the variables for SVI patients, and $Y$ will play the role of this variable for non-SVI patients. Start by computing a vector of the denominators of the t-statistics, called `pros.dat.denom`, according to the formula above. Take advantage of vectorization; this calculation should require just a single line of code. Make sure not to include any hard constants (e.g., don't just manually write 21 here for $n$); as always, programmatically define all the relevant quantities. Then compute a vector of t-statistics for the 9 variables in our data set, called `pros.dat.t.stat`, according to the formula above, and using `pros.dat.denom`. Again, take advantage of vectorization; this calculation should require just a single line of code. Print out the t-statistics to the console. 
 
 ```{r q14a}
@@ -865,10 +868,12 @@ print(pros.dat.t.stat)
 ```
 
 **14b.** Given data $X$ and $Y$ and the t-statistic $T$ as defined the last question, the **degrees of freedom** associated with $T$ is:
+
 $$
 \nu = \frac{(\frac{s_X^2}{n}+\frac{s_Y^2}{m})^2}{\frac{(\frac{s_X^2}{n})^2}{n-1} + 
   \frac{(\frac{s_Y^2}{m})^2}{m-1}}.
 $$
+
 Compute the degrees of freedom associated with each of our 9 t-statistics (from our 9 variables), storing the result in a vector called `pros.dat.df`. This might look like a complicated/ugly calculation, but really, it's not too bad: it only involves arithmetic operators, and taking advantage of vectorization, the calculation should only require a single line of code. Hint: to simplify this line of code, it will help to first set short variable names for variables/quantities you will be using, as in `sx = pros.dat.svi.sd`, `n = nrow(pros.dat.svi)`, and so on. Print out these degrees of freedom values to the console.
 
 ```{r q14b}
@@ -883,7 +888,8 @@ pros.dat.df <- ((sx^2/n + sy^2/m)^2)/(((sx^2/n)^2/(n-1)) + ((sy^2/m)^2/(m-1)))
 print(pros.dat.df)
 ```
 
-**14c.** The function `pt()` evaluates the distribution function of the t-distribution (example below) and returns the probability that a t-distributed random variable, with `v` degrees of freedom, exceeds the value `x`. Importantly, `pt()` is vectorized: if `x` is a vector, and so is `v`, then the above returns, in vector format: the probability that a t-distributed variate with `v[1]` degrees of freedom exceeds `x[1]`, the probability that a t-distributed variate with `v[2]` degrees of freedom exceeds `x[2]`, and so on. 
+**14c.** The function `pt()` evaluates the distribution function of the t-distribution (example below) and returns the probability that a t-distributed random variable, with `v` degrees of freedom, exceeds the value `x`. Importantly, `pt()` is vectorized: if `x` is a vector, and so is `v`, then the above returns, in vector format: the probability that a t-distributed variate with `v[1]` degrees of freedom exceeds `x[1]`, the probability that a t-distributed variate with `v[2]` degrees of freedom exceeds `x[2]`, and so on.
+
 ```{r, eval=FALSE}
 pt(x, df=v, lower.tail=FALSE)
 ```
@@ -1054,6 +1060,7 @@ tests <- lapply(pros.dat[, names(pros.dat) != "svi"], t.test.by.ind, ind = pros.
 
 print(str(tests))
 ```
+
 The structure is a nested list.
 
 **18d.** Using `lapply()` again, extract the p-values from the `tests` object you created in the last question, with just a single line of code. Hint: first, take a look at the first element of `tests`, what kind of object is it, and how is the p-value stored? Second, run the command `` `[[`(pros.dat, "lcavol")`` in your console---what does this do? Now use what you've learned to extract p-values from the `tests` object.
@@ -1088,6 +1095,7 @@ print(colnames(rio))
 print("Missing Data")
 print(sum(is.na(rio)))
 ```
+
 Each row represents one of the participants in the Rio Olimpic Games.
 
 **19b.** Use `rio` to answer the following questions. How many athletes competed in the 2016 Summer Olympics? How many countries were represented? What were these countries, and how many athletes competed for each one? Which country brought the most athletes, and how many was this? Hint: for a factor variable `f`, you can use `table(f)` see how many elements in `f` are in each level of the factor.
@@ -1114,6 +1122,7 @@ print(sum(rio[["silver"]]))
 print("Bronze")
 print(sum(rio[["bronze"]]))
 ```
+
 There is an unequal amount of medals for each type, which is likely due to ties in individual events. 
 
 **19d.** Create a column called `total` which adds the number of gold, silver, and bronze medals for each athlete, and add this column to `rio`. Which athlete had the most number of medals and how many was this? Gold medals? Silver medals? In the case of ties, here, display all the relevant athletes. 
@@ -1150,7 +1159,7 @@ Q20. Young and old folks
 
 **20a.** The variable `date_of_birth` contains strings of the date of birth of each athlete. Use the `substr()` function to extract the year of birth for each athlete, and then create a new numeric variable called `age`, equal to 2016 - (the year of birth). (Here we're ignoring days and months for simplicity.) Hint: to extract the first 4 characters of a string `str`, you can use `substr(str, 1, 4)`. As always, you can also look at the help file for `substr()` for more details.
 
-  Add the `age` variable to the `rio` data frame. variable  Who is the oldest athlete, and how old is he/she? Youngest athlete, and how old is he/she? In the case of ties, here, display all the relevant athletes. 
+Add the `age` variable to the `rio` data frame. variable  Who is the oldest athlete, and how old is he/she? Youngest athlete, and how old is he/she? In the case of ties, here, display all the relevant athletes. 
 
 ```{r q20a}
 rio$age <- 2016 - as.integer(substr(rio$date_of_birth, 1,4))
@@ -1254,6 +1263,7 @@ sports %>%
   select(sport, ave_weight_women) %>%
   print()
 ```
+
 The orderings are roughly similar. 
 
 **Challenge.** Use one of the apply functions to compute the proportion of women among participating athletes in each sport. Use these proportions to recompute the average weight (over all athletes in each sport) from the `ave_weight_men` and `average_weight_women` columns, and define a new column `ave_weight2` accordingly. Does `ave_weight2` differ from `ave_weight`? It should. Explain why. Then show how to recompute the average weight from `ave_weight_men` and `average_weight_women` in a way that exactly recreates `average_weight`.
@@ -1274,12 +1284,14 @@ sports$ave_weight_recreated <- (sports$n_men * sports$ave_weight_men + sports$n_
 ### Hint #4. Huber loss function
 
 The Huber loss function (or just Huber function, for short) is defined as:
+
 $$
 \psi(x) = \begin{cases}
 x^2 & \text{if $|x| \leq 1$} \\
 2|x| - 1 & \text{if $|x| > 1$} 
 \end{cases}
 $$
+
 This function is quadratic on the interval [-1,1], and linear outside of this interval. It transitions from quadratic to linear "smoothly", and looks like [this](http://www.stat.cmu.edu/~ryantibs/statcomp/labs/huber.png). It is often used in place of the usual squared error loss for robust estimation. For example, the sample average, $\bar{X}$---which given a sample $X_1,\ldots,X_n$ minimizes the squared error loss $\sum_{i=1}^n (X_i-m)^2$ over all choices of $m$---can be inaccurate as an estimate of $\mathbb{E}(X)$ if the distribution of $X$ is heavy-tailed. In such cases, minimizing Huber loss can give a better estimate. 
 
 Q22. Some simple function tasks
@@ -1301,12 +1313,14 @@ print(paste("huber(4) =", huber(4)))
 ```
 
 **22b.** The Huber function can be modified so that the transition from quadratic to linear happens at an arbitrary cutoff value $a$, as in:
+
 $$
 \psi_a(x) = \begin{cases}
 x^2 & \text{if $|x| \leq a$} \\
 2a|x| - a^2 & \text{if $|x| > a$} 
 \end{cases}
 $$
+
 Starting with your solution code to the last question, update your `huber()` function so that it takes two arguments: $x$, a number at which to evaluate the loss, and $a$ a number representing the cutoff value. It should now return $\psi_a(x)$, as defined above. Check that `huber(3, 2)` returns 8, and `huber(3, 4)` returns 9.
 
 ```{r q22b}
@@ -1323,6 +1337,7 @@ print(paste("huber(3,4) =", huber(3,4)))
 ```
 
 **22c.** Update your `huber()` function so that the default value of the cutoff $a$ is 1. Check that `huber(3)` returns 5. 
+
 ```{r q22c}
 huber <- function(x,a = 1) {
   if (abs(x) <= a) {
@@ -1351,6 +1366,7 @@ huber <- function(x, a = 5) {
 }
 print(paste("huber(1:6,3) =", huber(1:6,3)))
 ```
+
 **Challenge.** Your instructor computed the Huber function values $\psi_a(x)$ over a bunch of different $x$ values, stored in `huber.vals` and `x.vals`, respectively. However, the cutoff $a$ was, let's say, lost. Using `huber.vals`, `x.vals`, and the definition of the Huber function, you should be able to figure out the cutoff value $a$, at least roughly. Estimate $a$ and explain how you got there. Hint: one way to estimate $a$ is to do so visually, using plotting tools; there are other ways too.
 
 ```{r q22chal}
@@ -1360,6 +1376,7 @@ huber.vals <- huber(x.vals, a)
 plot(x.vals, huber.vals, type = "l", xlab = "x", ylab = "Huber Value",
      main = "Huber Function")
 ```
+
 Visually you can infer that around -6 and 6 the curve turns into a straight line.
 
 Q23. Plotting practice, side effects 
@@ -1461,7 +1478,8 @@ print(paste("huber.sloppy(3) =", huber.sloppy(3)))
 a = "hi"
 print(paste("huber.sloppy(3) =", huber.sloppy(3)))
 ```
-The function uses the x value as a.
+
+The function uses the `x` value as `a`.
 
 **24d.** At last, a difference between `=` and `<-`, explained! Some of you have been asking about this. The equal sign `=` and assignment operator `<-` are often used interchangeably in R, and some people will often say that a choice between the two is mostly a matter of stylistic taste. This is not the full story. Indeed, `=` and `<-` behave very differently when used to set input arguments in a function call. As we showed above, setting, say, `a=5` as the input to `huber()` has no effect on the global assignment for `a`. However, replacing `a=5` with `a<-5` in the call to `huber()` is entirely different in terms of its effect on `a`. Demonstrate this, and explain what you are seeing in terms of global assignment.
 
@@ -1471,7 +1489,8 @@ print(a)
 print(paste("huber(3, a <- 5) =", huber(3, a <- 5)))
 print(a)
 ```
-= assignment does not change the global value of a, only inside the function. <- changes the value both inside and outside of the function.
+
+The `=` assignment does not change the global value of `a`, only inside the function. On the other hand, `<-` changes the value both inside and outside of the function.
 
 **24e.** The story now gets even more subtle. It turns out that the assignment operator `<-` allows us to define new global variables even when we are specifying inputs to a function. Pick a variable name that has not been defined yet in your workspace, say `b` (or something else, if this has already been used in your R Markdown document). Call `huber(x=3, b<-20)`, then display the value of `b`---this variable should now exist in the global enviroment, and it should be equal to 20! Also, can you explain the output of `huber(x=3, b<-20)`?
 
@@ -1479,7 +1498,8 @@ print(a)
 print(paste("huber(3, b <- 20) =", huber(3, b <- 20)))
 print(b)
 ```
-The value of b is being ignored by the function, and the value of a is being used.
+
+The value of `b` is being ignored by the function, and the value of `a` is being used.
 
 **Challenge.** The property of the assignment operator `<-` demonstrated in the last question, although tricky, can also be pretty useful. Leverage this property to plot the function $y=0.05x^2 - \sin(x)\cos(x) + 0.1\exp(1+\log(x))$ over 50 x values between 0 and 2, using only one line of code and one call to the function `seq()`.
 
