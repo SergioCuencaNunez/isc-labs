@@ -1,0 +1,147 @@
+---
+title: 'Lab 2: Parallel Computing'
+subtitle: "Introduction to Statistical Computing"
+author: "Elena Conderana & Sergio Cuenca"
+date: 
+output:
+  pdf_document: 
+    toc: true
+    number_sections: false
+    latex_engine: pdflatex
+---
+
+```{r, include=FALSE}
+# A hook to wrap output based on a linewidth chunk option
+# From https://github.com/yihui/knitr-examples/blob/master/077-wrap-output.Rmd
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+opts_chunk$set(cache=TRUE, autodep=TRUE, cache.comments=TRUE, linewidth=79)
+```
+
+\newpage
+
+This lab is to be done outside of class time. You may collaborate with one classmate, but you must identify yourself and his/her name above, in the author's field, and you must submit **your own** lab as this completed .Rmd file. 
+
+Installing and loading packages 
+===
+
+In order to perform the exercise in this practice you should install and load the `doParallel` package. 
+
+```{r}
+library(doParallel)
+```
+
+Q1. Is parallelization worth it?
+===
+
+**1a.** First, let's check how many cores do you have in your computer. Create a new variable `no_cores` equal to the number of cores minus 1.
+
+```{r q1a}
+no_cores <- parallel::detectCores()-1
+```
+
+**1b.** Register the cores and prepare the clusters using the `registerDoParallel()` and `makeCluster()` function. This will allow to parallelize code in the following code chunks.
+
+```{r q1b}
+registerDoParallel(no_cores)
+cl <- makeCluster(no_cores)
+```
+
+**1c.** Now, you have the following function which calculates the prime numbers from `1` to `n`. Use the `microbenchmark` package to check which is faster to calculate the prime numbers when n goes from 10 to 10000: `lapply`, a `for` loop, `parLapply` or a `foreach` loop. The `lapply` and the `for` loop have been written for you. Which function is faster?
+```{r q1c}
+library(microbenchmark)
+
+getPrimeNumbers <- function(n) {  
+   n <- as.integer(n)
+   if(n > 1e6) stop("n too large")
+   primes <- rep(TRUE, n)
+   primes[1] <- FALSE
+   last.prime <- 2L
+   for(i in last.prime:floor(sqrt(n)))
+   {
+      primes[seq.int(2L*last.prime, n, last.prime)] <- FALSE
+      last.prime <- last.prime + min(which(primes[(last.prime+1):n]))
+   }
+   which(primes)
+}
+n_vec <- 10:10000
+lapplyPrimeNumbers <- function(n_vec) {
+  result <- lapply(n_vec, getPrimeNumbers)  
+}
+forPrimeNumbers <- function(n_vec) {
+  result <- list()
+  for (n in n_vec) {
+    result[[n]] <- getPrimeNumbers(n)
+  }
+}
+
+parLapplyPrimeNumbers <- function(n_vec, cl) {
+  clusterExport(cl, "getPrimeNumbers")
+  result <- parLapply(cl, n_vec, getPrimeNumbers)
+}
+
+foreachPrimeNumbers <- function(n_vec) {
+  result <- foreach(n = n_vec, .export = "getPrimeNumbers") %dopar% {
+    getPrimeNumbers(n)
+  }
+}
+
+bench_results <- microbenchmark(
+  for_loop = forPrimeNumbers(n_vec),
+  lapply = lapplyPrimeNumbers(n_vec),
+  parLapply = parLapplyPrimeNumbers(n_vec, cl),
+  foreach = foreachPrimeNumbers(n_vec),
+  times = 10
+)
+
+print(bench_results)
+boxplot(bench_results)
+
+```
+
+**1d** Remember to use stop the clusters in `cl` using the `stopCluster` function.
+```{r q1d}
+stopCluster(cl)
+```
+
+**Challenge 01.** Search around your computer for a sequential code that might be parallelized. Using the `doParallel` package, parallelize the code and calculate the speedup. If you cannot find any code to parallelize, use the following code:
+```{r q1ch1}
+
+x <- iris[which(iris[,5] != "setosa"), c(1,5)]
+trials <- seq(1, 10000)
+boot_fx <- function(trial) {
+  ind <- sample(100, 100, replace=TRUE)
+  result1 <- glm(x[ind,2]~x[ind,1], family=binomial(logit))
+  r <- coefficients(result1)
+  res <- rbind(data.frame(), r)
+}
+
+cl <- makeCluster(no_cores)
+clusterExport(cl, c("boot_fx", "x"))
+ 
+parLapplyBoot <- function(trial, cl) {
+  result <- parLapply(cl, trial, boot_fx)
+} 
+
+bench_results_boot <- microbenchmark(
+  boot_fx = lapply(trials, boot_fx),  
+  parLapplyBoot = parLapplyBoot(trials, cl),
+  times = 10
+)
+
+print(bench_results_boot)
+boxplot(bench_results_boot)
+
+stopCluster(cl)
+
+```
