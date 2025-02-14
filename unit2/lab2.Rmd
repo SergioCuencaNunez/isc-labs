@@ -116,6 +116,7 @@ stopCluster(cl)
 
 **Challenge 01.** Search around your computer for a sequential code that might be parallelized. Using the `doParallel` package, parallelize the code and calculate the speedup. If you cannot find any code to parallelize, use the following code:
 ```{r q1ch1}
+
 x <- iris[which(iris[,5] != "setosa"), c(1,5)]
 trials <- seq(1, 10000)
 boot_fx <- function(trial) {
@@ -126,13 +127,14 @@ boot_fx <- function(trial) {
 }
 
 cl <- makeCluster(no_cores)
+clusterExport(cl, c("boot_fx", "x"))
+ 
 parLapplyBoot <- function(trial, cl) {
-  clusterExport(cl, c("boot_fx","x"))
   result <- parLapply(cl, trial, boot_fx)
-}
+} 
 
 bench_results_boot <- microbenchmark(
-  boot_fx = boot_fx(trials),
+  boot_fx = lapply(trials, boot_fx),  
   parLapplyBoot = parLapplyBoot(trials, cl),
   times = 10
 )
