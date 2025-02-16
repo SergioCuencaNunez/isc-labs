@@ -58,6 +58,7 @@ cl <- makeCluster(no_cores)
 ```
 
 **1c.** Now, you have the following function which calculates the prime numbers from `1` to `n`. Use the `microbenchmark` package to check which is faster to calculate the prime numbers when n goes from 10 to 10000: `lapply`, a `for` loop, `parLapply` or a `foreach` loop. The `lapply` and the `for` loop have been written for you. Which function is faster?
+
 ```{r q1c}
 library(microbenchmark)
 
@@ -106,15 +107,16 @@ bench_results <- microbenchmark(
 
 print(bench_results)
 boxplot(bench_results)
-
 ```
 
 **1d** Remember to use stop the clusters in `cl` using the `stopCluster` function.
+
 ```{r q1d}
 stopCluster(cl)
 ```
 
 **Challenge 01.** Search around your computer for a sequential code that might be parallelized. Using the `doParallel` package, parallelize the code and calculate the speedup. If you cannot find any code to parallelize, use the following code:
+
 ```{r q1ch1}
 
 x <- iris[which(iris[,5] != "setosa"), c(1,5)]
@@ -143,5 +145,4 @@ print(bench_results_boot)
 boxplot(bench_results_boot)
 
 stopCluster(cl)
-
 ```
